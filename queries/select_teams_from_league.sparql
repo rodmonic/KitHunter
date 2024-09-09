@@ -1,0 +1,16 @@
+SELECT ?teamLabel ?wikipediaLink 
+
+WHERE {
+  
+    ?team wdt:P118 wd:Q9448;
+          wdt:P31 wd:Q476028.
+          
+    # Retrieve the English Wikipedia link
+  OPTIONAL {
+    ?wikipediaLink schema:about ?team;
+                   schema:isPartOf <https://en.wikipedia.org/>.
+  }
+        
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+ORDER BY ?teamLabel

@@ -1,0 +1,12 @@
+SELECT ?league ?leagueLabel ?level ?countryLabel
+WHERE {
+  ?league wdt:P31 wd:Q15991303;   # Instance of football league
+          wdt:P3983 ?level;  # Direct sports league level assignment
+          wdt:P17 ?country
+
+  # Filter for levels 1, 2, or 3
+  FILTER(?level IN (1, 2, 3))
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+ORDER BY ?level ?leagueLabel
