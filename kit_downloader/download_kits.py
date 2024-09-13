@@ -1,4 +1,5 @@
 from time import sleep
+from tokenize import group
 from SPARQLWrapper import SPARQLWrapper, JSON
 import os
 import requests
@@ -9,12 +10,14 @@ from PIL import Image
 import requests_cache
 import mwclient
 
+user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
+site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
+
 
 # List of search terms
 kit_parts = ["Kit_left_arm",
 "Kit_body",
-"Kit_right_arm",
-"Kit_shorts"]
+"Kit_right_arm"]
 
 sparql_query = """
 SELECT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
@@ -112,7 +115,7 @@ def get_images_by_kit_part(td: Tag, kit_parts: list[str]) -> list[tuple[str, str
         for img in img_tags:
             src = img.get('src')
             if src:
-                if kit_part in src.split('/')[-1]:  # Check if the filename contains the search term
+                if src.split('/')[-1].startswith(kit_part):  # Check if the filename contains the search term
                     # Check if the image filename matches any of the search terms
                     div_above = img.find_parent('div').find_previous('div')
                     background_color = get_background_color(div_above)
@@ -136,9 +139,12 @@ def get_kit_type(img):
     try:
         kit_type_div = img.find_parent('div').find_parent('div').find_next_sibling('div').find_all('a')[0]
         kit_type = kit_type_div.text
-    except IndexError:
+    except (IndexError):
         kit_type_div = img.find_parent('div').find_parent('div').find_next_sibling('div').find_all('b')[0]
         kit_type = kit_type_div.text
+    except (AttributeError):
+        kit_type = "error"
+
     return slugify(kit_type)
 
 
@@ -186,7 +192,6 @@ def get_kit_type_images(url, kit_parts):
 # Initialize requests-cache with an expiration time (e.g., 6 hours) to cache responses
 requests_cache.install_cache('image_cache', expire_after=24 * 60 * 60)
 # Connect to the Wikimedia API
-site = mwclient.Site('commons.wikimedia.org')
 
 def download_images(country_label, league_label, team_name, year, kit_type_images):
     # Create the team directory if it doesn't exist
@@ -196,42 +201,32 @@ def download_images(country_label, league_label, team_name, year, kit_type_image
     # Loop through the image groups (by <td>)
     for kit_type, images in kit_type_images.items():
         group_dir = os.path.join(team_dir, kit_type)
-        os.makedirs(group_dir, exist_ok=True)
+        try:
+            os.makedirs(group_dir)
+        except FileExistsError:
+            print(f"skipped {group_dir}")
+            continue
         
         # Loop through each search term's images in the group
         for kit_part, image_name, background_color in images:
             sleep(0.5)
-            image = image_name.split("/")[-1]
+            image_name = image_name.split("/")[-1]
             try:
                 # Get the image page from Wikimedia Commons
-                image = site.images[image]
+                image = site.images[image_name]
 
                 if not image.exists:
                     print(f"Image {image_name} does not exist on Wikimedia Commons.")
                     continue
 
-                # Get the image URL
-                image_url = image_page.imageinfo['url']
-
-                # Use cached requests for downloading images
-                img_response = requests.get(image_url)
-
+                # Save the image in the corresponding term folder
+                img_filename = os.path.join(group_dir, f'{kit_part}.{image_name.split(".")[-1]}')
+                with open(img_filename, 'wb') as img_file:
+                    image.download(img_file)
+                if background_color:
+                    fill_in_background_color(img_filename, background_color)
                 
-                if img_response.status_code == 200:
-
-                    if img_response.from_cache:
-                        print(f"Loaded from cache: {image_url}")
-                    else:
-                        print(f"Downloaded: {image_url}")
-
-                    # Save the image in the corresponding term folder
-                    img_filename = os.path.join(group_dir, f'{kit_part}.{image_url.split(".")[-1]}')
-                    with open(img_filename, 'wb') as img_file:
-                        img_file.write(img_response.content)
-                    if background_color:
-                        fill_in_background_color(img_filename, background_color)
-                else:
-                    print(f"Failed to download image {image_url}")
+                print(f"Downloaded {image_name} as {img_filename}")
 
             except Exception as e:
                 print(f"Failed to get image for {image_name}: {e}")
@@ -284,7 +279,10 @@ def download_kits(teams):
     # Loop through the list of Wikipedia URLs, get the images grouped by <td> and search terms, and download them
     for team in teams:
 
-        teamLabel = team['wikipediaLink']['value'].split('/')[-1]
+        try:
+            teamLabel = team['wikipediaLink']['value'].split('/')[-1]
+        except KeyError:
+            continue
 
         for year in range(2025, 2024, -1):
             
