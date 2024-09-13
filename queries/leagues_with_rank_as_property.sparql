@@ -1,12 +1,24 @@
-SELECT ?league ?leagueLabel ?level ?countryLabel
+SELECT DISTINCT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel
 WHERE {
+  {
   ?league wdt:P31 wd:Q15991303;   # Instance of football league
           wdt:P3983 ?level;  # Direct sports league level assignment
-          wdt:P17 ?country
-
+          wdt:P17 ?country.
+  # Linking teams to the league
+  ?team wdt:P118 ?league;  # Team plays in the league
+        wdt:P31 wd:Q476028 
+    
+  FILTER NOT EXISTS {
+    ?league wdt:P576 ?value.  # Property P1234 should not be present
+  }
+    
+  }
   # Filter for levels 1, 2, or 3
   FILTER(?level IN (1, 2, 3))
 
+
+  
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
-ORDER BY ?level ?leagueLabel
+
+ORDER BY ?countryLabel ?level

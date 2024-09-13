@@ -1,3 +1,4 @@
+from time import sleep
 from SPARQLWrapper import SPARQLWrapper, JSON
 import os
 import requests
@@ -5,6 +6,8 @@ from bs4 import BeautifulSoup, Tag
 import unicodedata
 import re
 from PIL import Image
+import requests_cache
+import mwclient
 
 
 # List of search terms
@@ -14,48 +17,45 @@ kit_parts = ["Kit_left_arm",
 "Kit_shorts"]
 
 sparql_query = """
-SELECT DISTINCT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel
-WHERE {
+SELECT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+WHERE 
+{
   {   
   ?league wdt:P31 wd:Q15991303. 
   ?league p:P361 ?statement.   
-  ?statement ps:P361 ?league_system;
-             pq:P3983 ?level.
+  ?statement  ps:P361 ?league_system;
+              pq:P3983 ?level.
   ?league_system wdt:P17 ?country.
   ?pq_qual wikibase:qualifier pq:P3983.  
-    
-  # Linking teams to the league
-  ?team wdt:P118 ?league.  # Team plays in the league
   
-  # Exclude items that have a specific property, e.g., P1234
-  FILTER NOT EXISTS {
-    ?league wdt:P576 ?value.  # Property P1234 should not be present
+    ?team wdt:P118 ?league;  # Team plays in the league
+        wdt:P31 wd:Q476028   
+    
   }
-     
-  }
-UNION
-  {
+  UNION
+   {
   ?league wdt:P31 wd:Q15991303;   # Instance of football league
           wdt:P3983 ?level;  # Direct sports league level assignment
           wdt:P17 ?country.
   # Linking teams to the league
-  ?team wdt:P118 ?league.  # Team plays in the league
-    
-  FILTER NOT EXISTS {
-    ?league wdt:P576 ?value.  # Property P1234 should not be present
+  ?team wdt:P118 ?league;  # Team plays in the league
+        wdt:P31 wd:Q476028 
   }
-    
-  }
+  
   # Filter for levels 1, 2, or 3
   FILTER(?level IN (1, 2, 3))
-
-
+  
+      # Retrieve the English Wikipedia link
+  OPTIONAL {
+    ?wikipediaLink schema:about ?team;
+                   schema:isPartOf <https://en.wikipedia.org/>.
+  }
   
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 
-ORDER BY ?countryLabel ?level
-    """
+ORDER BY ?countryLabel ?level ?league ?team
+"""
 
 def slugify(value, allow_unicode=False):
     """
@@ -183,6 +183,11 @@ def get_kit_type_images(url, kit_parts):
 
     return kit_types
 
+# Initialize requests-cache with an expiration time (e.g., 6 hours) to cache responses
+requests_cache.install_cache('image_cache', expire_after=24 * 60 * 60)
+# Connect to the Wikimedia API
+site = mwclient.Site('commons.wikimedia.org')
+
 def download_images(country_label, league_label, team_name, year, kit_type_images):
     # Create the team directory if it doesn't exist
     team_dir = os.path.join('downloads', country_label, league_label, team_name, str(year))
@@ -194,20 +199,42 @@ def download_images(country_label, league_label, team_name, year, kit_type_image
         os.makedirs(group_dir, exist_ok=True)
         
         # Loop through each search term's images in the group
-        for kit_part, image_url, background_color in images:
+        for kit_part, image_name, background_color in images:
+            sleep(0.5)
+            image = image_name.split("/")[-1]
+            try:
+                # Get the image page from Wikimedia Commons
+                image = site.images[image]
 
-            # Download each image
-            img_response = requests.get(image_url)
-            if img_response.status_code == 200:
-                # Save the image in the corresponding term folder
-                img_filename = os.path.join(group_dir, f'{kit_part}.{image_url.split(".")[-1]}')
-                with open(img_filename, 'wb') as img_file:
-                    img_file.write(img_response.content)
-                if background_color:
-                    fill_in_background_color(img_filename, background_color)
-                print(f"Downloaded {img_filename}")
-            else:
-                print(f"Failed to download image {images[0]}")
+                if not image.exists:
+                    print(f"Image {image_name} does not exist on Wikimedia Commons.")
+                    continue
+
+                # Get the image URL
+                image_url = image_page.imageinfo['url']
+
+                # Use cached requests for downloading images
+                img_response = requests.get(image_url)
+
+                
+                if img_response.status_code == 200:
+
+                    if img_response.from_cache:
+                        print(f"Loaded from cache: {image_url}")
+                    else:
+                        print(f"Downloaded: {image_url}")
+
+                    # Save the image in the corresponding term folder
+                    img_filename = os.path.join(group_dir, f'{kit_part}.{image_url.split(".")[-1]}')
+                    with open(img_filename, 'wb') as img_file:
+                        img_file.write(img_response.content)
+                    if background_color:
+                        fill_in_background_color(img_filename, background_color)
+                else:
+                    print(f"Failed to download image {image_url}")
+
+            except Exception as e:
+                print(f"Failed to get image for {image_name}: {e}")
 
 
 def hex_to_rgb(hex_color: str) -> tuple:
@@ -257,13 +284,15 @@ def download_kits(teams):
     # Loop through the list of Wikipedia URLs, get the images grouped by <td> and search terms, and download them
     for team in teams:
 
-        teamLabel = team['teamLabel']['value'].replace(" ", "_")
+        teamLabel = team['wikipediaLink']['value'].split('/')[-1]
 
         for year in range(2025, 2024, -1):
-
+            
+            # First try the current season
             url_template = f"https://en.wikipedia.org/wiki/{year-1}–{abs(year) % 100}_{teamLabel}_season"
             kit_images = get_kit_type_images(url_template, kit_parts)
 
+            # if that doesn't exist and we're in the first year then try
             if not kit_images and year == 2025:
                 url_template = f"https://en.wikipedia.org/wiki/{teamLabel}"
                 kit_images = get_kit_type_images(url_template, kit_parts)
