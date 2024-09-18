@@ -1,41 +1,70 @@
-SELECT DISTINCT ?countryLabel ?level ?league ?leagueLabel
-WHERE 
-{
+SELECT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+WHERE {
+  
   {   
-  ?league wdt:P31 wd:Q15991303. 
-  ?league p:P361 ?statement.   
-  ?statement  ps:P361 ?league_system;
-              pq:P3983 ?level.
-  ?league_system wdt:P17 ?country.
-  ?pq_qual wikibase:qualifier pq:P3983.  
-  ?team       wdt:P118 ?league;  # Team plays in the league
-              wdt:P31 wd:Q476028 
-  
-  # Exclude items that have a specific property, e.g., P1234
-  FILTER NOT EXISTS 
-    {
-      ?league wdt:P576 ?value.
-    }
+    # Case 1: Leagues with qualifier for league level
+    ?league wdt:P31 wd:Q15991303.  # League is a football league
+    ?league p:P361 ?statement.  # League is part of a league system
+    ?statement ps:P361 ?league_system;  # League system link
+               pq:P3983 ?level.  # Qualifier for league level
+    ?league_system wdt:P17 ?country.  # Country of the league system
+    ?pq_qual wikibase:qualifier pq:P3983.  # Qualifier statement for level
+    
+    # Linking teams to the league
+    ?team wdt:P118 ?league;  # Team plays in the league
+          wdt:P31 wd:Q476028.  # Team is a football club
+    
+    # Filter for levels 1, 2, or 3
+    FILTER(?level IN (1, 2, 3))
   }
-  UNION
-  {
-  ?league wdt:P31 wd:Q15991303;   # Instance of football league
-          wdt:P3983 ?level;  # Direct sports league level assignment
-          wdt:P17 ?country.
-  ?team wdt:P118 ?league;  # Team plays in the league
-        wdt:P31 wd:Q476028 
   
-          
-  FILTER NOT EXISTS 
-    {
-      ?league wdt:P576 ?value.  # Property P1234 should not be present
+  UNION
+  
+  {
+    # Case 2: Leagues with direct league level assignment
+    ?league wdt:P31 wd:Q15991303;  # League is a football league
+            wdt:P3983 ?level;  # League level property
+            wdt:P17 ?country.  # Country of the league
+    
+    # Linking teams to the league
+    ?team wdt:P118 ?league;  # Team plays in the league
+          wdt:P31 wd:Q476028.  # Team is a football club
+    
+    # Filter for levels 1, 2, or 3
+    FILTER(?level IN (1, 2, 3))
+  }
+  
+  UNION
+  
+  {
+    # Case 3: Teams playing in specific leagues (MLS, USL Championship, USL League One)
+    ?team wdt:P31 wd:Q476028.  # Ensure the entity is a football club
+    
+    # Specified leagues (MLS, USL Championship, USL League One)
+    VALUES ?league {
+      wd:Q30636616  # MLS
+      wd:Q1362411   # USL Championship
+      wd:Q18543     # USL League One
     }
     
+    # Linking teams to the leagues
+    ?team wdt:P118 ?league.  # Team plays in one of the specified leagues
+    
+    # Retrieve the team's country if available
+    OPTIONAL {
+      ?team wdt:P17 ?country.
+    }
   }
-  # Filter for levels 1, 2, or 3
-  FILTER(?level IN (1, 2, 3))
   
+  # Retrieve the English Wikipedia link if available
+  OPTIONAL {
+    ?wikipediaLink schema:about ?team;
+                   schema:isPartOf <https://en.wikipedia.org/>.
+  }
+  
+  # Retrieve labels in English for readability
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 
-ORDER BY ?countryLabel ?level
+# Order results by country, level, league, and team
+ORDER BY ?countryLabel ?level ?league ?team
