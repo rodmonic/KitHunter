@@ -1,8 +1,9 @@
+from pytz import country_names
 from data_gathering import slugify, run_query
 from image_funcs import convert_svg_to_png, fill_in_background_color
 from time import strftime
 import logging
-from data_gathering import get_leagues_from_query
+from data_gathering import get_leagues_from_query, get_teams_from_query, get_kits_from_query
 
 
 from sqlmodel import create_engine, SQLModel, Session
@@ -106,7 +107,6 @@ def get_kit_type_images(url, kit_parts):
     # Parse the HTML content using BeautifulSoup
     soup = BeautifulSoup(response.content, 'html.parser')
 
-
     kit_types = {}
 
     # Loop through each <td> and find images within it by search terms
@@ -186,7 +186,7 @@ def download_images(country_label, league_label, team_name, year, kit_type_image
                 print(f"Failed to get image for {mapped_image_name}: {e}")
 
 
-def download_kits(teams):
+def download_kits(teams, engine):
 
     logging.debug("DOWLOAD KITS|GET IMAGES")
 
@@ -216,14 +216,24 @@ def download_kits(teams):
 
             if kit_images:
                 
+                country_slug = slugify(team['countryLabel']['value'])
+                league_slug = slugify(team['leagueLabel']['value'])
+                team_slug = slugify(team['teamLabel']['value'])
+
                 print(f"Downloading images for team {team['teamLabel']['value']}...")
                 download_images(
-                    slugify(team['countryLabel']['value']),
-                    slugify(team['leagueLabel']['value']),
-                    slugify(team['teamLabel']['value']), 
+                    country_slug,
+                    league_slug,
+                    team_slug, 
                     year,
                     kit_images, 
                 )
+            
+                slug = f"./downloads/{country_slug}/{league_slug}/{team_slug}"
+
+                for kit, _ in kit_images.items():
+                    get_kits_from_query(kit, year, team['team']['value'], slug, engine), 
+
             else:
                 logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}|No images matching search terms found for team {teamLabel} and {year}.")
 
@@ -247,7 +257,7 @@ if __name__ == "__main__":
 
     # process teams
     teams = run_query('./queries/all_teams.sparql')
-    #get_teams_from_query(teams, engine)
+    get_teams_from_query(teams, engine)
 
 
     # process kits
@@ -256,6 +266,6 @@ if __name__ == "__main__":
 
 
     # Start the download process
-    # download_kits(teams, engine)
+    download_kits(teams, engine)
     
     logging.debug("PREPARE DATA")

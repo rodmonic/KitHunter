@@ -1,43 +1,40 @@
-from typing import Optional, List
+from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship
 
+class League(SQLModel, table=True):
+
+    id: str = Field(default=None, primary_key=True)  # Primary key
+    league_name: str
+    level: Optional[int] = None
+
+    # Relationships
+    teams: list["Team"] = Relationship(back_populates="league")
 
 class Team(SQLModel, table=True):
     
-    id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
-    wd_id: str
+    id: str = Field(default=None, primary_key=True)  # Primary key
     name: str
+    league_id: Optional[str] = Field(default=None, foreign_key="league.id")  # Foreign key
+    wiki_link: Optional[str]
     country: Optional[str]
-    league_id: Optional[int] = Field(default=None, foreign_key="league.id")  # Foreign key
-    wiki_link: str
 
     # Relationships
-    # kits: List["Kit"] = Relationship(back_populates="team")
-
-class KitColor(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
-    color_name: str  # e.g., "Red", "Blue", "#FFFFFF"
-    hex_code: str
-    kit_id: Optional[int] = Field(default=None, foreign_key="kit.id")  # Foreign key
-
+    league: League | None = Relationship(back_populates="teams")
+   
 class Kit(SQLModel, table=True):
+
     id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
     kit_type: str  # e.g., "Home", "Away", "Third"
     season: Optional[str] = None
     sponsor: Optional[str] = None
     team_id: Optional[int] = Field(default=None, foreign_key="team.id")  # Foreign key
+    slug: str
 
-    # Relationship to Team
-    # team: Optional[Team] = Relationship(back_populates="kits")
 
-    # # Relationship to KitColor
-    # left_arm_colors: List[KitColor] = Relationship(back_populates="kits_left_arm")
-    # right_arm_colors: List[KitColor] = Relationship(back_populates="kits_right_arm")
-    # body_colors: List[KitColor] = Relationship(back_populates="kits_body")
+# class KitColor(SQLModel, table=True):
 
-class League(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
-    wd_id: str
-    league_name: str
-    level: Optional[int] = None
-    country: Optional[str] = None
+#     id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
+#     color_name: str  # e.g., "Red", "Blue", "#FFFFFF"
+#     hex_code: str
+#     kit_id: Optional[int] = Field(default=None, foreign_key="kit.id")  # Foreign key
+

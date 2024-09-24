@@ -1,4 +1,4 @@
-SELECT ?countryLabel ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+SELECT (SAMPLE(?countryLabel) AS ?countryLabel) ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
 WHERE {
   
   {   
@@ -7,7 +7,6 @@ WHERE {
     ?league p:P361 ?statement.  # League is part of a league system
     ?statement ps:P361 ?league_system;  # League system link
                pq:P3983 ?level.  # Qualifier for league level
-    ?league_system wdt:P17 ?country.  # Country of the league system
     ?pq_qual wikibase:qualifier pq:P3983.  # Qualifier statement for level
     
     # Linking teams to the league
@@ -23,8 +22,7 @@ WHERE {
   {
     # Case 2: Leagues with direct league level assignment
     ?league wdt:P31 wd:Q15991303;  # League is a football league
-            wdt:P3983 ?level;  # League level property
-            wdt:P17 ?country.  # Country of the league
+            wdt:P3983 ?level.  # League level property
     
     # Linking teams to the league
     ?team wdt:P118 ?league;  # Team plays in the league
@@ -49,12 +47,14 @@ WHERE {
     
     # Linking teams to the leagues
     ?team wdt:P118 ?league.  # Team plays in one of the specified leagues
-    
-    # Retrieve the team's country if available
-    OPTIONAL {
-      ?team wdt:P17 ?country.
-    }
+  
   }
+  
+  
+  ?team wdt:P17 ?country.
+  ?country rdfs:label ?countryLabel.  # Get country label
+  FILTER(LANG(?countryLabel) = "en")  # Ensure country label is in English
+  
   
   # Retrieve the English Wikipedia link if available
   OPTIONAL {
@@ -66,5 +66,8 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 
-# Order results by country, level, league, and team
+# Use SAMPLE for country to limit to the first one
+GROUP BY ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+
+# Order results by level, league, and team
 ORDER BY ?countryLabel ?level ?league ?team
