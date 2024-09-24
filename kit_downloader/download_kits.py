@@ -1,19 +1,19 @@
-
+from data_gathering import slugify, run_query
+from image_funcs import convert_svg_to_png, fill_in_background_color
 from time import strftime
-from SPARQLWrapper import SPARQLWrapper, JSON
+import logging
+from data_gathering import get_leagues_from_query
+
+
+from sqlmodel import create_engine, SQLModel, Session
 import os
 import requests
 from bs4 import BeautifulSoup
-import unicodedata
-import re
-from PIL import Image
+
 import mwclient
 import shutil
 import urllib
-import logging
-import cairosvg
 
-logging.basicConfig(filename=f'./logging/{strftime("%Y%m%d-%H%M%S")}.log', encoding='utf-8', level=logging.DEBUG)
 
 user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
 site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
@@ -29,50 +29,6 @@ image_map={
     '31px-Kit_right_arm.svg.png' : "Kit_right_arm.svg",
     '38px-Kit_body.svg.png' : "Kit_body.svg"
 }
-
-
-with open('./queries/all_leagues.sparql', 'r') as file:
-    sparql_query = file.read()  # Read the entire content of the file
-
-
-def slugify(value, allow_unicode=False):
-    """
-    Taken from https://github.com/django/django/blob/master/django/utils/text.py
-    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
-    dashes to single dashes. Remove characters that aren't alphanumerics,
-    underscores, or hyphens. Convert to lowercase. Also strip leading and
-    trailing whitespace, dashes, and underscores.
-    """
-    value = str(value)
-    if allow_unicode:
-        value = unicodedata.normalize('NFKC', value)
-    else:
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub(r'[^\w\s-]', '', value.lower())
-    return re.sub(r'[-\s]+', '-', value).strip('-_')
-
-
-def run_query(query: str) -> list[tuple[str, str]]:
-    """
-    Fetches a list of sports teams from Wikidata along with their corresponding Wikipedia URLs.
-
-    This function sends a SPARQL query to the Wikidata SPARQL endpoint to retrieve sports team information.
-    It processes the results to extract team labels and their associated Wikipedia links, returning a list
-    of tuples where each tuple contains:
-        - A Wikipedia URL (str) for the team.
-        - A formatted team label (str) with spaces replaced by underscores.
-
-    Returns:
-        list[tuple[str, str]]: A list of tuples where each tuple contains a Wikipedia URL and a team label.
-    """
-    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-
-    sparql.setQuery(query)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-
-    return results['results']['bindings']
-
 
 def get_images_by_kit_part(soup, kit_parts: list[str]) -> list[tuple[str, str]]:
 
@@ -230,75 +186,6 @@ def download_images(country_label, league_label, team_name, year, kit_type_image
                 print(f"Failed to get image for {mapped_image_name}: {e}")
 
 
-def convert_svg_to_png(file_path, output_folder):
-    # Check if the file is an SVG
-    if not file_path.lower().endswith('.svg'):
-        return file_path  # Return original path if not an SVG
-
-    # Get the base name (without extension) and the full output path
-    base_name = os.path.basename(file_path)
-    file_name_without_ext = os.path.splitext(base_name)[0]
-    png_file_path = os.path.join(output_folder, f"{file_name_without_ext}.png")
-
-    # Check if the PNG already exists
-    if os.path.exists(png_file_path):
-        return png_file_path  # Return PNG path if it already exists
-
-    # Create the output folder if it doesn't exist
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Convert the SVG to PNG and save it
-    try:
-        cairosvg.svg2png(url=file_path, write_to=png_file_path)
-        print(f"Converted {file_path} to {png_file_path}")
-        return png_file_path  # Return the path to the newly created PNG
-    except Exception as e:
-        print(f"Error converting SVG to PNG: {e}")
-        return file_path  # Return the original path if an error occurs
-
-def hex_to_rgb(hex_color: str) -> tuple:
-    """
-    Converts a hex color string (e.g., '#FF5733') to an RGB tuple (R, G, B).
-    
-    Args:
-        hex_color (str): The hex color string, optionally prefixed with '#'.
-        
-    Returns:
-        tuple: A tuple representing the RGB color.
-    """
-    hex_color = hex_color.lstrip('#')  # Remove the '#' if present
-    if len(hex_color) == 6:
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-    else:
-        raise ValueError(f"Invalid hex color code: {hex_color}")
-
-
-def fill_in_background_color(file, color):
-    # Define the new background color (R, G, B)
-    
-    try:
-        background_color = hex_to_rgb(color)  # Red background
-    except ValueError:
-        logging.debug(f"DOWLOAD KITS|Fill In Background Color|Error|{file}, {color}")   
-        return
-    
-    # Open the existing image
-    existing_image = Image.open(file)
-
-    # Get the size of the existing image
-    width, height = existing_image.size
-
-    # Create a new image with the same size and the background color
-    background = Image.new('RGB', (width, height), background_color)
-
-    # Paste the existing image onto the background
-    # We use the alpha channel if the existing image has transparency
-    background.paste(existing_image, (0, 0), existing_image.convert('RGBA'))
-
-    # Save the new image
-    background.save(file)
-
-
 def download_kits(teams):
 
     logging.debug("DOWLOAD KITS|GET IMAGES")
@@ -310,6 +197,7 @@ def download_kits(teams):
             teamLabel = team['wikipediaLink']['value'].split('/')[-1]
         except KeyError:
             continue
+
 
         logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}")
 
@@ -327,7 +215,7 @@ def download_kits(teams):
                 kit_images = get_kit_type_images(url_template, kit_parts)
 
             if kit_images:
-            
+                
                 print(f"Downloading images for team {team['teamLabel']['value']}...")
                 download_images(
                     slugify(team['countryLabel']['value']),
@@ -341,9 +229,33 @@ def download_kits(teams):
 
 
 
+
+logging.basicConfig(filename=f'./logging/{strftime("%Y%m%d-%H%M%S")}.log', encoding='utf-8', level=logging.DEBUG)
+
 if __name__ == "__main__":
     logging.debug("START")
     logging.debug("RUN QUERY")
-    leagues_and_teams = run_query(sparql_query)
-    logging.debug("DOWLOAD KITS")
-    download_kits(leagues_and_teams)
+    
+    # set up SQLModel 
+    engine = create_engine("sqlite:///football_team.db", echo=True)
+    SQLModel.metadata.create_all(engine)
+
+    # process leagues
+    leagues = run_query('./queries/all_leagues.sparql')
+    get_leagues_from_query(leagues, engine)
+
+
+    # process teams
+    teams = run_query('./queries/all_teams.sparql')
+    #get_teams_from_query(teams, engine)
+
+
+    # process kits
+    logging.debug("DOWNLOAD KITS")
+
+
+
+    # Start the download process
+    # download_kits(teams, engine)
+    
+    logging.debug("PREPARE DATA")
