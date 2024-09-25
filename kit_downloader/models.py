@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship
 
+
 class League(SQLModel, table=True):
 
     id: str = Field(default=None, primary_key=True)  # Primary key
@@ -31,10 +32,12 @@ class Kit(SQLModel, table=True):
     slug: str
 
 
-# class KitColor(SQLModel, table=True):
+class KitColor(SQLModel, table=True):
 
-#     id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
-#     color_name: str  # e.g., "Red", "Blue", "#FFFFFF"
-#     hex_code: str
-#     kit_id: Optional[int] = Field(default=None, foreign_key="kit.id")  # Foreign key
+    id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
+    part: str
+    red: int
+    green: int
+    blue: int
+    kit_id: Optional[int] = Field(default=None, foreign_key="kit.id")  # Foreign key
 

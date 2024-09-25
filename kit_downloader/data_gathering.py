@@ -1,11 +1,15 @@
-from SPARQLWrapper import SPARQLWrapper, JSON
+from image_funcs import detect_dominant_colors
+from models import KitColor, League, Team, Kit
+
 import unicodedata
 import re
-
-from sqlmodel import SQLModel, Session, select
+import os
 from typing import Any, Dict, List, Optional
 
-from models import League, Team, Kit
+from tqdm import tqdm
+from sqlmodel import Session, select
+from SPARQLWrapper import SPARQLWrapper, JSON
+
 
 def safe_get(d: Dict[str, Any], keys: List[str]) -> Optional[Any]:
     for key in keys:
@@ -94,11 +98,41 @@ def get_kits_from_query(kit: str, year: int, team_id: Team, slug: str, engine):
         kit_type = kit,
         season = year,
         team_id = team_id,
-        slug = slug + f'/{kit}/'
+        slug = slug + f'/{year}/{kit}/'
         )
         
         session.add(new_kit)
         session.commit()
+
+
+def get_colors_from_kits(engine):
+
+    with Session(engine) as session:
+        statement = select(Kit)
+        kits = session.exec(statement)
+        for kit in tqdm(kits):
+
+
+            for file in os.listdir(kit.slug):
+
+                split_file = file.split(".")
+
+                file_mask = f'./masks/{split_file[0]}_mask.{split_file[1]}'
+                try:
+                    dominant_colors = detect_dominant_colors(os.path.join(kit.slug, file), file_mask, 3)
+                except:
+                    dominant_colors = []
+                
+                for color in dominant_colors:
+                    new_kit_colour = KitColor(
+                        part = split_file[0].replace(" ", "_"),
+                        kit_id = kit.id,
+                        red = color[0],
+                        green = color[1],
+                        blue = color[2]
+                    )
+                    session.add(new_kit_colour)
+                    session.commit()
 
 
 def league_exists(session: Session, id: str) -> bool:
