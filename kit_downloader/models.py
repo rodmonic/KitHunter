@@ -11,8 +11,9 @@ class League(SQLModel, table=True):
     # Relationships
     teams: list["Team"] = Relationship(back_populates="league")
 
+
 class Team(SQLModel, table=True):
-    
+
     id: str = Field(default=None, primary_key=True)  # Primary key
     name: str
     league_id: Optional[str] = Field(default=None, foreign_key="league.id")  # Foreign key
@@ -21,7 +22,8 @@ class Team(SQLModel, table=True):
 
     # Relationships
     league: League | None = Relationship(back_populates="teams")
-   
+
+
 class Kit(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)  # Primary key
@@ -40,4 +42,3 @@ class KitColor(SQLModel, table=True):
     green: int
     blue: int
     kit_id: Optional[int] = Field(default=None, foreign_key="kit.id")  # Foreign key
-

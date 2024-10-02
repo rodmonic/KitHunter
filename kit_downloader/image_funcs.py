@@ -32,32 +32,33 @@ def convert_svg_to_png(file_path, output_folder):
         print(f"Error converting SVG to PNG: {e}")
         return file_path  # Return the original path if an error occurs
 
+
 def hex_to_rgb(hex_color: str) -> tuple:
     """
     Converts a hex color string (e.g., '#FF5733') to an RGB tuple (R, G, B).
-    
+
     Args:
         hex_color (str): The hex color string, optionally prefixed with '#'.
-        
+
     Returns:
         tuple: A tuple representing the RGB color.
     """
     hex_color = hex_color.lstrip('#')  # Remove the '#' if present
     if len(hex_color) == 6:
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
     else:
         raise ValueError(f"Invalid hex color code: {hex_color}")
 
 
 def fill_in_background_color(file, color):
     # Define the new background color (R, G, B)
-    
+
     try:
         background_color = hex_to_rgb(color)  # Red background
     except ValueError:
-        logging.debug(f"DOWLOAD KITS|Fill In Background Color|Error|{file}, {color}")   
+        logging.debug(f"DOWLOAD KITS|Fill In Background Color|Error|{file}, {color}")
         return
-    
+
     # Open the existing image
     existing_image = Image.open(file)
 
@@ -74,6 +75,7 @@ def fill_in_background_color(file, color):
     # Save the new image
     background.save(file)
 
+
 # Example usage:
 image_path = './downloads/Kit_left_arm_2.png'
 mask_path = './downloads/Kit_left_arm_mask.png'  # Path to your mask image
@@ -83,34 +85,34 @@ def detect_dominant_colors(image_path, mask_path, k=3):
     # Load the image and the mask
     image = cv2.imread(image_path)
     mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Load mask as grayscale
-    
+
     # Ensure the mask is binary (0 and 255 values)
     _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-    
+
     # Apply the mask to the image
     masked_image = cv2.bitwise_and(image, image, mask=mask)
-    
+
     # Reshape the image to a 2D array of pixels (excluding masked areas)
     pixels = masked_image.reshape(-1, 3)
-    
+
     # Remove black pixels (masked-out areas where RGB = [0, 0, 0])
     pixels = pixels[np.any(pixels != [0, 0, 0], axis=1)]
-    
+
     # Convert pixels to float32 for KMeans input (required by OpenCV)
     pixels = np.float32(pixels)
-    
+
     # Define criteria for K-means (iterations and accuracy)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-    
+
     # Run KMeans clustering on the pixels
     _, labels, centers = cv2.kmeans(
         pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS
     )
-    
+
     # Convert the centers (dominant colors) back to integer type (RGB)
     dominant_colors_bgr = np.uint8(centers)
 
     # Convert the BGR colors to RGB format
     dominant_colors_rgb = dominant_colors_bgr[:, ::-1]  # Swap B and R channel
-    
+
     return dominant_colors_rgb
