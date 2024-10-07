@@ -14,12 +14,12 @@ import mwclient
 import shutil
 import urllib
 
-from models import KitColor, Kit, League, Team
+from backend.app.models import KitColor, Kit, League, Team
 
 
 user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
 site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
-cache_dir = "./cache/"
+cache_dir = "./kit_scraper/cache/"
 
 # List of search terms
 kit_parts = [
@@ -240,7 +240,7 @@ def download_kits(teams, engine):
 
 
 logging.basicConfig(
-    filename=f'./logging/{strftime("%Y%m%d-%H%M%S")}.log',
+    filename=f'./kit_scraper/logging/{strftime("%Y%m%d-%H%M%S")}.log',
     encoding='utf-8',
     level=logging.DEBUG
 )
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     logging.debug("RUN QUERY")
 
     # set up SQLModel
-    engine = create_engine("sqlite:///football_team.db", echo=True)
+    engine = create_engine("sqlite:///backend/kit_hunter.db", echo=True)
 
     # delete any tables that might need readding
     SQLModel.metadata.drop_all(engine, tables=[KitColor.__table__])
@@ -262,11 +262,11 @@ if __name__ == "__main__":
     SQLModel.metadata.create_all(engine)
 
     # process leagues
-    leagues = run_query('./queries/all_leagues.sparql')
+    leagues = run_query('./kit_scraper/queries/all_leagues.sparql')
     get_leagues_from_query(leagues, engine)
 
     # process teams
-    teams = run_query('./queries/all_teams.sparql')
+    teams = run_query('./kit_scraper/queries/all_teams.sparql')
     get_teams_from_query(teams, engine)
 
     # process kits

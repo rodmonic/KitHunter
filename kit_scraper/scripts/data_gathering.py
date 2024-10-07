@@ -1,5 +1,5 @@
 from image_funcs import detect_dominant_colors
-from models import KitColor, League, Team, Kit
+from backend.app.models import KitColor, League, Team, Kit
 
 import unicodedata
 import re
