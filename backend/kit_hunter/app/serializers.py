@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import User, League, Team, Kit, KitColor
+from django.contrib.auth.models import Group, User
+from .models import League, Team, Kit, KitColor
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -7,6 +8,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'hashed_password']  # List of fields to include in the serializer
         extra_kwargs = {'hashed_password': {'write_only': True}}  # Don't return the hashed password in responses
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['url', 'name']
 
 
 class KitColorSerializer(serializers.ModelSerializer):

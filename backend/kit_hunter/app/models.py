@@ -1,45 +1,63 @@
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
 
-class User(models.Model):
-    id = models.CharField(primary_key=True, max_length=255)  # CharField used for ID
-    email = models.EmailField(unique=True, db_index=True)  # EmailField with unique and index
-    hashed_password = models.CharField(max_length=255)  # CharField for hashed passwords
+class Kit(models.Model):
+    kit_type = models.CharField(max_length=10)
+    season = models.IntegerField(blank=True, null=True)
+    sponsor = models.CharField(blank=True, null=True, max_length=50)
+    team = models.ForeignKey('Team', models.CASCADE)
+    slug = models.CharField(max_length=500)
+
+    class Meta:
+        managed = False
+        db_table = 'kit'
+
+    def __str__(self):
+        return self.slug
+
+
+class KitColor(models.Model):
+    part = models.CharField(max_length=15)
+    red = models.IntegerField()
+    green = models.IntegerField()
+    blue = models.IntegerField()
+    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'kitcolor'
 
 
 class League(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-incrementing integer ID
-    league_name = models.CharField(max_length=255)  # CharField for the league name
-    level = models.CharField(max_length=255)  # CharField for league level
+    id = models.CharField(primary_key=True, max_length=300)
+    league_name = models.CharField(max_length=100)
+    level = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'league'
 
     def __str__(self):
         return self.league_name
 
 
 class Team(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-incrementing integer ID
-    name = models.CharField(max_length=255)  # CharField for the team name
-    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="teams")  # ForeignKey to League
-    wiki_link = models.URLField(max_length=255, blank=True, null=True)  # URLField for wiki link
-    country = models.CharField(max_length=255)  # CharField for country
+    id = models.CharField(primary_key=True, max_length=300)
+    name = models.CharField(max_length=30)
+    league = models.ForeignKey(League, models.CASCADE)
+    wiki_link = models.CharField(blank=True, null=True, max_length=100)
+    country = models.CharField(blank=True, null=True, max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'team'
 
     def __str__(self):
         return self.name
-
-
-class Kit(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-incrementing integer ID
-    kit_type = models.CharField(max_length=255)  # CharField for kit type (e.g., "Home", "Away")
-    season = models.IntegerField()  # IntegerField for season
-    sponsor = models.CharField(max_length=255, blank=True, null=True)  # CharField for sponsor
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="kits")  # ForeignKey to Team
-    slug = models.SlugField(max_length=255)  # SlugField for slug
-
-
-class KitColor(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-incrementing integer ID
-    part = models.CharField(max_length=255)  # CharField for the part of the kit (e.g., shirt, shorts)
-    red = models.IntegerField()  # IntegerField for red value in RGB
-    green = models.IntegerField()  # IntegerField for green value in RGB
-    blue = models.IntegerField()  # IntegerField for blue value in RGB
-    kit = models.ForeignKey(Kit, on_delete=models.CASCADE, related_name="kitcolors")  # ForeignKey to Kit
