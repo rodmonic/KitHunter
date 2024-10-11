@@ -1,61 +1,149 @@
-body {
+/* General Styles */
+body, html {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Centering styles */
-  display: flex;                     /* Use flexbox for centering */
-  justify-content: center;           /* Center horizontally */
-  align-items: center;               /* Center vertically */
-  height: 100vh;                    /* Full viewport height */
-  background-color: #f8f9fa;       /* Optional: light background color */
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-.login-form {
-  width: 300px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: white;         /* Optional: white background for the form */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
-}
-
-.login-form h2 {
-  text-align: center;
-}
-
-.login-form form div {
-  margin-bottom: 15px;
-}
-
-.login-form label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.login-form input {
-  width: 100%;
-  padding: 8px;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
   box-sizing: border-box;
 }
 
-.login-form button {
+/* Container for the whole page layout */
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+/* Main section: Sidebar + Content */
+.main {
+  display: flex;
+  flex-grow: 1;
+  height: 100%; /* Ensures main section grows to fill available space */
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #f4f4f4;
+  width: 200px;
+  padding: 15px;
+  flex-shrink: 0;
+  height: 79vh;
+
+}
+
+/* Main Content */
+.content {
+  background-color: #fff;
+  padding: 20px;
+  flex-grow: 1;
+}
+
+/* Centred login box */
+.login-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height for centering */
+  background-color: #f0f0f0; /* Light background for contrast */
+}
+
+.login-box .box {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15); /* Softer shadow */
+  width: 350px;
+  text-align: center;
+}
+
+.login-box .box h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Labels for input fields */
+.login-box label {
+  display: block;
+  text-align: left;
+  font-size: 14px;
+  margin-bottom: 0px;
+  color: #333;
+}
+
+.login-box input {
   width: 100%;
   padding: 10px;
-  background-color: #28a745;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #4CAF50;
   color: white;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
 }
 
-.login-form button:hover {
-  background-color: #218838;
+.login-box button:hover {
+  background-color: #45a049;
 }
+
+.login-box a {
+  display: block;
+  margin-top: 15px;
+  color: #333;
+  text-decoration: none;
+}
+
+.login-box a:hover {
+  text-decoration: underline;
+}
+
+/* DisplayKit (Image display component) */
+.display-kit {
+  display: flex;              /* Use flexbox for horizontal layout */
+  align-items: flex-start;    /* Align images at the top */
+  padding: 0;                 /* Remove padding */
+  margin: 0;                  /* Remove margin */
+}
+
+.display-kit img {
+  height: 100%;               /* Adjust height based on parent */
+  object-fit: contain;        /* Maintain aspect ratio */
+  margin: 0;                  /* Remove margin between images */
+  padding: 0;                 /* Remove padding between images */
+}
+
+/* Flex container with column layout */
+.flex-container {
+  display: flex;
+  flex-direction: row;             /* Align items in a row */
+  justify-content: space-between;  /* Space evenly between items */
+  align-items: center;             /* Center items vertically */
+  background-color: #397940;
+  row-gap: 20px;                       /* Space between flex items */
+  padding: 10px;                   /* Optional: Add padding to the container */
+}
+
+.flex-item {
+  padding: 20px;
+  text-align: center;
+  height: 75vh;
+  width: 100%;                  /* Ensure items take full width */
+}
+

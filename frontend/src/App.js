@@ -1,32 +1,26 @@
-import React from "react";
-import { Route, Routes, Navigate } from "react-router-dom"; // Use Navigate for redirecting
-import LoginForm from "./components/LoginForm";
-import WelcomePage from "./components/WelcomePage";
-import LeaguesTable from "./components/LeaguesTable"; 
-import ProtectedRoute  from "./components/ProtectedRoute";
+// App.js
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginForm from './components/LoginForm'; // Your login component
+import UserPage from './components/UserPage'; // Your user-specific page
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginForm/>} />
-      <Route 
-        path="/welcome" 
+    <Route path="/login" element={<LoginForm />} />
+    <Route
+        path="/home/*"
         element={
-          <ProtectedRoute>
-            <WelcomePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/leagues" 
-        element={
-          <ProtectedRoute>
-            <LeaguesTable />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="*" element={<Navigate to="/login" replace />} /> {/* Default redirect */}
+        <ProtectedRoute>
+            <UserPage />
+        </ProtectedRoute>
+        }
+    />
+    <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+
   );
 };
 

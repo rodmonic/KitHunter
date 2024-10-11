@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from rest_framework.views import APIView
 from django.contrib.auth.models import Group, User
 from .models import League, Team, Kit, KitColor
 from .serializers import (
@@ -10,6 +11,13 @@ from .serializers import (
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+
+
+class DistinctCountriesView(APIView):
+    def get(self, request):
+        # Get distinct countries from the database
+        countries = Team.objects.values_list('country', flat=True).distinct()
+        return Response(list(countries))  # Return as a list
 
 
 class CustomAuthToken(ObtainAuthToken):

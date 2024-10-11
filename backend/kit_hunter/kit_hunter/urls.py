@@ -1,7 +1,7 @@
 from django.contrib import admin
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from app.views import LeagueViewSet, TeamViewSet, KitViewSet, KitColorViewSet, CustomAuthToken
+from app.views import LeagueViewSet, TeamViewSet, KitViewSet, KitColorViewSet, CustomAuthToken, DistinctCountriesView
 # from app.views import UserViewSet, GroupViewSet
 
 router = DefaultRouter()
@@ -13,7 +13,8 @@ router.register(r'kitcolors', KitColorViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(router.urls)),  # Include all the routes from the router
+    path('api/v1/', include(router.urls)),  # Include all the routes from the router
     path('accounts/', include("django.contrib.auth.urls")),
-    path('api/auth/token/', CustomAuthToken.as_view(), name='api_auth_token')
+    path('auth/token/', CustomAuthToken.as_view(), name='api_auth_token'),
+    path('api/V1/countries/', DistinctCountriesView.as_view(), name='distinct-countries'),
 ]

@@ -1,15 +1,17 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+// ProtectedRoute.js
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
-  const token = sessionStorage.getItem("token"); // Check if the token exists
+  const token = sessionStorage.getItem('token'); // Check for token
 
+  // If no token, redirect to login
   if (!token) {
-    // If not authenticated, redirect to the login page
     return <Navigate to="/login" replace />;
   }
 
-  return children; // If authenticated, render the children components
+  // If token exists, render the children components
+  return children;
 };
 
 export default ProtectedRoute;

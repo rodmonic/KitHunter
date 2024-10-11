@@ -2,13 +2,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Edge against localhost",
+            "name": "Launch APP",
             "type": "msedge",
             "request": "launch",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}/frontend/src",
-            "sourceMaps": true,
-            "trace": true
+            "webRoot": "${workspaceFolder}/src",
+            "preLaunchTask": "npm: start",
+            "postDebugTask": "Terminate All Tasks"
+        },
+        {
+            "name": "Django",
+            "type": "debugpy",
+            "request": "launch",
+            "stopOnEntry": false,
+            "program": "${workspaceRoot}/backend/kit_hunter/manage.py",
+            "args": [
+                "runserver",
+                "--no-color",
+                "--noreload"
+            ],
+        }
+    ],
+    "compounds" :[
+        {
+            "name": "Server/Client",
+            "configurations": ["Launch APP", "Django"],
+            "stopAll": true
         }
     ]
 }
