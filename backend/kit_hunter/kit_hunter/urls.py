@@ -15,6 +15,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),  # Include all the routes from the router
     path('accounts/', include("django.contrib.auth.urls")),
-    path('auth/token/', CustomAuthToken.as_view(), name='api_auth_token'),
+    path('api/auth/token/', CustomAuthToken.as_view(), name='api_auth_token'),
     path('api/V1/countries/', DistinctCountriesView.as_view(), name='distinct-countries'),
 ]

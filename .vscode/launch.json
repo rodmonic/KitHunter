@@ -19,7 +19,6 @@
             "args": [
                 "runserver",
                 "--no-color",
-                "--noreload"
             ],
         }
     ],
