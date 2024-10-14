@@ -56,6 +56,15 @@ class LeagueViewSet(viewsets.ModelViewSet):
             return LeagueWriteSerializer
         return LeagueSerializer  # Read operations use the read serializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()  # Call the base implementation first
+        country = self.request.query_params.get('country', None)  # Get the 'country' query parameter
+
+        if country:
+            queryset = queryset.filter(country__iexact=country)  # Adjust as per your field names
+
+        return queryset
+
 
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all()
@@ -65,6 +74,15 @@ class TeamViewSet(viewsets.ModelViewSet):
             return TeamWriteSerializer
         return TeamSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()  # Call the base implementation first
+        league_id = self.request.query_params.get('league_id', None)  # Get the 'country' query parameter
+
+        if league_id:
+            queryset = queryset.filter(league_id__exact=league_id)  # Adjust as per your field names
+
+        return queryset
+
 
 class KitViewSet(viewsets.ModelViewSet):
     queryset = Kit.objects.all()
@@ -73,6 +91,15 @@ class KitViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitWriteSerializer
         return KitSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()  # Call the base implementation first
+        team_id = self.request.query_params.get('team_id', None)  # Get the 'country' query parameter
+
+        if team_id:
+            queryset = queryset.filter(team_id__exact=team_id)  # Adjust as per your field names
+
+        return queryset
 
 
 class KitColorViewSet(viewsets.ModelViewSet):

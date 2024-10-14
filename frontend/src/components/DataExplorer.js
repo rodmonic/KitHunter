@@ -36,7 +36,7 @@ const DataExplorer = () => {
   // Fetch teams when a league is selected
   useEffect(() => {
     if (selectedLeague) {
-      axios.get(`http://localhost:8000/api/v1/teams/?league=${selectedLeague}`)
+      axios.get(`http://localhost:8000/api/v1/teams/?league_id=${selectedLeague}`)
         .then(response => setTeams(response.data))
         .catch(error => console.error('Error fetching teams:', error));
     }
@@ -45,7 +45,7 @@ const DataExplorer = () => {
   // Fetch kits when a team is selected
   useEffect(() => {
     if (selectedTeam) {
-      axios.get(`http://localhost:8000/api/v1/kits/?team=${selectedTeam}`)
+      axios.get(`http://localhost:8000/api/v1/kits/?team_id=${selectedTeam}`)
         .then(response => setKits(response.data))
         .catch(error => console.error('Error fetching kits:', error));
     }
@@ -56,8 +56,7 @@ const DataExplorer = () => {
 
       {/* Countries and Leagues */}
       <Row gutter={16}>
-        <Col span={8}>
-          <h2>Countries</h2>
+        <Col span={6}>
           <List
             bordered
             dataSource={countries}
@@ -71,26 +70,22 @@ const DataExplorer = () => {
           />
         </Col>
         {selectedCountry && (
-          <Col span={8}>
-            <h2>Leagues in {selectedCountry}</h2>
+          <Col span={6}>
             <List
               bordered
               dataSource={leagues}
               renderItem={(league) => (
-                <List.Item onClick={() => setSelectedLeague(league.id)}>
+                <List.Item onClick={() => setSelectedLeague(
+                  league.id
+                  )}>
                   {league.league_name}
                 </List.Item>
               )}
             />
           </Col>
         )}
-      </Row>
-
-      {/* Teams and Kits */}
-      <Row gutter={16}>
-        {selectedLeague && (
-          <Col span={8}>
-            <h2>Teams in {selectedLeague}</h2>
+        {selectedLeague && selectedCountry && (
+          <Col span={6}>
             <List
               bordered
               dataSource={teams}
@@ -102,17 +97,20 @@ const DataExplorer = () => {
             />
           </Col>
         )}
-        {selectedTeam && (
-          <Col span={8}>
-            <h2>Kits for {selectedTeam}</h2>
-            <Collapse defaultActiveKey={[]} accordion>
-              {kits.map((kit, index) => (
-                <Panel header={`Kit ${index + 1}`} key={index}>
-                  <p>{kit}</p>
-                </Panel>
-              ))}
-            </Collapse>
-          </Col>
+        {selectedTeam && selectedCountry && selectedLeague && (
+          
+          <Col span={6}>
+          <List
+            bordered
+            dataSource={kits}
+            renderItem={(kit) => (
+              <List.Item >
+                {kit.slug}
+              </List.Item>
+            )}
+          />
+        </Col>
+
         )}
       </Row>
     </div>
