@@ -16,7 +16,6 @@ class Kit(models.Model):
     slug = models.CharField(max_length=500)
 
     class Meta:
-        managed = False
         db_table = 'kit'
 
     def __str__(self):
@@ -31,7 +30,6 @@ class KitColor(models.Model):
     kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'kitcolor'
 
 
@@ -39,9 +37,9 @@ class League(models.Model):
     id = models.CharField(primary_key=True, max_length=300)
     league_name = models.CharField(max_length=100)
     level = models.IntegerField(blank=True, null=True)
+    country = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'league'
 
     def __str__(self):
@@ -56,7 +54,6 @@ class Team(models.Model):
     country = models.CharField(blank=True, null=True, max_length=100)
 
     class Meta:
-        managed = False
         db_table = 'team'
 
     def __str__(self):
