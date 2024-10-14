@@ -8,31 +8,6 @@
 from django.db import models
 
 
-class Kit(models.Model):
-    kit_type = models.CharField(max_length=10)
-    season = models.IntegerField(blank=True, null=True)
-    sponsor = models.CharField(blank=True, null=True, max_length=50)
-    team = models.ForeignKey('Team', models.CASCADE)
-    slug = models.CharField(max_length=500)
-
-    class Meta:
-        db_table = 'kit'
-
-    def __str__(self):
-        return self.slug
-
-
-class KitColor(models.Model):
-    part = models.CharField(max_length=15)
-    red = models.IntegerField()
-    green = models.IntegerField()
-    blue = models.IntegerField()
-    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
-
-    class Meta:
-        db_table = 'kitcolor'
-
-
 class League(models.Model):
     id = models.CharField(primary_key=True, max_length=300)
     league_name = models.CharField(max_length=100)
@@ -58,3 +33,28 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Kit(models.Model):
+    kit_type = models.CharField(max_length=10)
+    season = models.IntegerField(blank=True, null=True)
+    sponsor = models.CharField(blank=True, null=True, max_length=50)
+    team = models.ForeignKey(Team, models.CASCADE)
+    slug = models.CharField(max_length=500)
+
+    class Meta:
+        db_table = 'kit'
+
+    def __str__(self):
+        return self.slug
+
+
+class KitColor(models.Model):
+    part = models.CharField(max_length=15)
+    red = models.IntegerField()
+    green = models.IntegerField()
+    blue = models.IntegerField()
+    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
+
+    class Meta:
+        db_table = 'kitcolor'
