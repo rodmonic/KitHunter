@@ -1,6 +1,3 @@
-from rest_framework import viewsets, permissions
-from rest_framework.views import APIView
-from django.contrib.auth.models import Group, User
 from .models import League, Team, Kit, KitColor
 from .serializers import (
     LeagueSerializer, LeagueWriteSerializer,
@@ -9,16 +6,13 @@ from .serializers import (
     GroupSerializer, UserSerializer
 )
 
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
-
-class DistinctCountriesView(APIView):
-    def get(self, request):
-        # Get distinct countries from the database
-        countries = Team.objects.values_list('country', flat=True).distinct()
-        return Response(list(countries))  # Return as a list
+from django.contrib.auth.models import Group, User
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -65,6 +59,15 @@ class LeagueViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @action(detail=False, methods=['get'], url_path=r'countries')
+    def unique_countries(self, request, team_id=None):
+        """
+        Custom action to get custom countries
+        """
+        # Get distinct countries from the database
+        countries = League.objects.exclude(country__isnull=True).values_list('country', flat=True).distinct().order_by('country')
+        return Response(list(countries))  # Return as a list
+
 
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all()
@@ -92,14 +95,56 @@ class KitViewSet(viewsets.ModelViewSet):
             return KitWriteSerializer
         return KitSerializer
 
-    def get_queryset(self):
-        queryset = super().get_queryset()  # Call the base implementation first
-        team_id = self.request.query_params.get('team_id', None)  # Get the 'country' query parameter
+    def list(self, request, *args, **kwargs):
+        """
+        Overrides the default list method to support filtering by team_id and season.
+        """
+        queryset = self.queryset
+        team_id = kwargs.get('team_id', None)
+        season = kwargs.get('season', None)
 
         if team_id:
-            queryset = queryset.filter(team_id__exact=team_id)  # Adjust as per your field names
+            queryset = queryset.filter(team_id__exact=team_id)
 
-        return queryset
+        if season:
+            queryset = queryset.filter(season=season)
+
+        # Serialize the filtered queryset
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<team_id>[^/.]+)')
+    def list_by_team(self, request, team_id=None):
+        """
+        Custom action to list kits filtered by team_id.
+        """
+        queryset = self.queryset.filter(team_id=team_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<team_id>[^/.]+)/(?P<season>\d+)')
+    def list_by_team_and_season(self, request, team_id=None, season=None):
+        """
+        Custom action to list kits filtered by team_id and season.
+        """
+        queryset = self.queryset.filter(team_id=team_id, season=season)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='seasons')
+    def get_seasons(self, request):
+        """
+        Custom action to get distinct seasons for a given team.
+        """
+        team_id = self.request.query_params.get('team_id', None)
+
+        if not team_id:
+            return Response({"detail": "Team parameter is required."}, status=400)
+
+        queryset = self.queryset.filter(team_id__exact=team_id)
+        seasons = queryset.values_list('season', flat=True).distinct()
+
+        return Response(list(seasons))
 
 
 class KitColorViewSet(viewsets.ModelViewSet):
