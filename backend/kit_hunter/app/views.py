@@ -55,7 +55,7 @@ class LeagueViewSet(viewsets.ModelViewSet):
         country = self.request.query_params.get('country', None)  # Get the 'country' query parameter
 
         if country:
-            queryset = queryset.filter(country__iexact=country)  # Adjust as per your field names
+            queryset = queryset.filter(country__iexact=country).order_by('level')  # Adjust as per your field names
 
         return queryset
 
@@ -82,7 +82,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         league_id = self.request.query_params.get('league_id', None)  # Get the 'country' query parameter
 
         if league_id:
-            queryset = queryset.filter(league_id__exact=league_id)  # Adjust as per your field names
+            queryset = queryset.filter(league_id__exact=league_id).order_by('name')  # Adjust as per your field names
 
         return queryset
 
@@ -142,7 +142,7 @@ class KitViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Team parameter is required."}, status=400)
 
         queryset = self.queryset.filter(team_id__exact=team_id)
-        seasons = queryset.values_list('season', flat=True).distinct()
+        seasons = queryset.values_list('season', flat=True).distinct().order_by('-season')
 
         return Response(list(seasons))
 
