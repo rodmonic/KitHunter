@@ -11,14 +11,11 @@ return (
         {images.map((image, index) => (
             <img
             key={index}
-            src={`${folder}/${image}`}
+            src={`${folder}${image}`}
             alt={`Image ${index + 1}`}
             style={{ height: '100%' }} // Set the height to 100% to fill the container
             />
         ))}
-        </div>
-        <div>
-            Kit Hunter
         </div>
     </div>
 );
