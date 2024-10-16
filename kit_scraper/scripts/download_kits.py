@@ -4,9 +4,8 @@ from time import strftime
 import logging
 from data_gathering import get_leagues_from_query, get_teams_from_query, get_kits_from_query, get_colors_from_kits
 
-
-from sqlmodel import create_engine, SQLModel, Session
 import os
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -14,8 +13,7 @@ import mwclient
 import shutil
 import urllib
 
-from backend.app.models import KitColor, Kit, League, Team
-
+image_root = "~/frontend/public/"
 
 user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
 site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
@@ -230,7 +228,7 @@ def download_kits(teams, engine):
                     kit_images,
                 )
 
-                slug = f"./downloads/{country_slug}/{league_slug}/{team_slug}"
+                slug = f"{image_root}/downloads/{country_slug}/{league_slug}/{team_slug}"
 
                 for kit, _ in kit_images.items():
                     get_kits_from_query(kit, year, team['team']['value'], slug, engine)
@@ -245,35 +243,24 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
+
 if __name__ == "__main__":
     logging.debug("START")
     logging.debug("RUN QUERY")
 
-    # set up SQLModel
-    engine = create_engine("sqlite:///backend/kit_hunter.db", echo=True)
-
-    # delete any tables that might need readding
-    SQLModel.metadata.drop_all(engine, tables=[KitColor.__table__])
-    SQLModel.metadata.drop_all(engine, tables=[Kit.__table__])
-    SQLModel.metadata.drop_all(engine, tables=[Team.__table__])
-    SQLModel.metadata.drop_all(engine, tables=[League.__table__])
-
-    # create table
-    SQLModel.metadata.create_all(engine)
-
     # process leagues
     leagues = run_query('./kit_scraper/queries/all_leagues.sparql')
-    get_leagues_from_query(leagues, engine)
+    get_leagues_from_query(leagues)
 
     # process teams
     teams = run_query('./kit_scraper/queries/all_teams.sparql')
-    get_teams_from_query(teams, engine)
+    get_teams_from_query(teams)
 
     # process kits
     logging.debug("DOWNLOAD KITS")
 
     # Start the download process
-    download_kits(teams, engine)
+    download_kits(teams)
     logging.debug("PREPARE DATA")
 
-    get_colors_from_kits(engine)
+    get_colors_from_kits()

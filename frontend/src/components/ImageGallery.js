@@ -32,7 +32,7 @@ const ImageGallery = ({ season, team }) => {
           {kits.map(kit => (
             <Col key={kit.id} xs={24} sm={12} md={8} lg={6}>
               <Card
-                title={kit.kit_type}
+                title={`${kit.season} - ${kit.kit_type}`}
                 style={{
                   width: '100%', // Make card take the full width of the column
                 }}
