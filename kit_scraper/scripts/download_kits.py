@@ -217,9 +217,6 @@ def download_club_kits(teams, season):
                     kit_images = get_kit_type_images(url_template, kit_parts)
 
                 if kit_images:
-                    country_slug = slugify(team['countryLabel']['value'])
-                    league_slug = slugify(team['leagueLabel']['value'])
-                    team_slug = slugify(team['teamLabel']['value'])
 
                     print(f"Downloading images for team {team['teamLabel']['value']}...")
                     download_images(
