@@ -11,11 +11,10 @@ django.setup()
 
 def main():
 
-    from app.models import Team
+    from app.models import Kit, KitColor
 
-    team = Team.objects.all()
-
-    print(team)
+    Kit.objects.all().delete()
+    KitColor.objects.all().delete()
 
 
 if __name__ == "__main__":

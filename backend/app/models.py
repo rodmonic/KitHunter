@@ -5,6 +5,7 @@
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
+from re import T
 from django.db import models
 
 
@@ -37,10 +38,11 @@ class Team(models.Model):
 
 class Kit(models.Model):
     kit_type = models.CharField(max_length=10)
+    kit_part = models.CharField(max_length=10, null=True, blank=True)
+    image = models.CharField(max_length=50, null=True, blank=True)
     season = models.IntegerField(blank=True, null=True)
     sponsor = models.CharField(blank=True, null=True, max_length=50)
     team = models.ForeignKey(Team, models.CASCADE)
-    slug = models.CharField(max_length=500)
 
     class Meta:
         db_table = 'kit'
@@ -50,7 +52,6 @@ class Kit(models.Model):
 
 
 class KitColor(models.Model):
-    part = models.CharField(max_length=15)
     red = models.IntegerField()
     green = models.IntegerField()
     blue = models.IntegerField()
