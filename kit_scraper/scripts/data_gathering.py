@@ -17,7 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kit_hunter.settings')
 django.setup()
 
 
-from app.models import Team, League, Kit, KitColor
+from app.models import Team, League, Kit, KitColor  # noqa: E402
 
 
 def safe_get(d: Dict[str, Any], keys: List[str]) -> Optional[Any]:
@@ -77,9 +77,9 @@ def get_leagues_from_query(leagues):
 def get_teams_from_query(teams):
 
     for team in teams:
-        if not team_exists(team['team']['value']):
+        if not team_exists(team['teamID']['value']):
             new_team = Team(
-                id=team['team']['value'],
+                id=team['teamID']['value'],
                 name=team['teamLabel']['value'],
                 wiki_link=safe_get(
                     team, ['wikipediaLink', 'value']
@@ -87,7 +87,7 @@ def get_teams_from_query(teams):
                 country=safe_get(
                     team, ['countryLabel', 'value']
                 ),
-                league_id=team['league']['value']
+                league_id=team['leagueID']['value']
             )
             new_team.save()
 
@@ -137,3 +137,7 @@ def league_exists(id: str) -> bool:
 
 def team_exists(id: str) -> bool:
     return Team.objects.all().filter(id=id).exists()
+
+
+def kit_exists(season: int, team_id: str) -> bool:
+    return Kit.objects.all().filter(team_id=team_id).filter(season=season).exists()

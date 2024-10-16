@@ -2,7 +2,7 @@ from data_gathering import slugify, run_query
 from image_funcs import convert_svg_to_png, fill_in_background_color
 from time import strftime
 import logging
-from data_gathering import get_leagues_from_query, get_teams_from_query, get_kits_from_query, get_colors_from_kits
+from data_gathering import get_leagues_from_query, get_teams_from_query, get_kits_from_query, get_colors_from_kits, kit_exists
 
 import os
 
@@ -56,11 +56,12 @@ def get_images_by_kit_part(soup, kit_parts: list[str]) -> list[tuple[str, str]]:
                         background_color = get_background_color(div_above)
 
                     kit_type = get_kit_type(img)
-                    full_img_url = 'https:' + src
-                    if kit_type in images:
-                        images[kit_type].append((kit_part, full_img_url, background_color))
-                    else:
-                        images[kit_type] = [(kit_part, full_img_url, background_color)]
+                    if kit_type:
+                        full_img_url = 'https:' + src
+                        if kit_type in images:
+                            images[kit_type].append((kit_part, full_img_url, background_color))
+                        else:
+                            images[kit_type] = [(kit_part, full_img_url, background_color)]
 
     if images:
         pass
@@ -77,7 +78,7 @@ def get_kit_type(img):
         kit_type_div = img.find_parent('div').find_parent('div').find_next_sibling('div').find_all('b')[0]
         kit_type = kit_type_div.text
     except (AttributeError):
-        kit_type = "error"
+        kit_type = ""
 
     return slugify(kit_type)
 
@@ -187,7 +188,7 @@ def download_images(country_label, league_label, team_name, year, kit_type_image
                 print(f"Failed to get image for {mapped_image_name}: {e}")
 
 
-def download_kits(teams, engine):
+def download_club_kits(teams, season):
 
     logging.debug("DOWLOAD KITS|GET IMAGES")
 
@@ -201,40 +202,42 @@ def download_kits(teams, engine):
 
         logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}")
 
-        for year in range(2025, 2024, -1):
+        for year in range(2025, season - 1, -1):
 
             logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}")
 
-            # First try the current season
-            url_template = f"https://en.wikipedia.org/wiki/{year-1}–{abs(year) % 100}_{teamLabel}_season"
-            kit_images = get_kit_type_images(url_template, kit_parts)
+            if not kit_exists(year, team['teamID']['value']):
 
-            # if that doesn't exist and we're in the first year then try
-            if not kit_images and year == 2025:
-                url_template = f"https://en.wikipedia.org/wiki/{teamLabel}"
+                # First try the current season
+                url_template = f"https://en.wikipedia.org/wiki/{year-1}–{abs(year) % 100}_{teamLabel}_season"
                 kit_images = get_kit_type_images(url_template, kit_parts)
 
-            if kit_images:
-                country_slug = slugify(team['countryLabel']['value'])
-                league_slug = slugify(team['leagueLabel']['value'])
-                team_slug = slugify(team['teamLabel']['value'])
+                # if that doesn't exist and we're in the first year then try
+                if not kit_images and year == 2025:
+                    url_template = f"https://en.wikipedia.org/wiki/{teamLabel}"
+                    kit_images = get_kit_type_images(url_template, kit_parts)
 
-                print(f"Downloading images for team {team['teamLabel']['value']}...")
-                download_images(
-                    country_slug,
-                    league_slug,
-                    team_slug,
-                    year,
-                    kit_images,
-                )
+                if kit_images:
+                    country_slug = slugify(team['countryLabel']['value'])
+                    league_slug = slugify(team['leagueLabel']['value'])
+                    team_slug = slugify(team['teamLabel']['value'])
 
-                slug = f"{image_root}/downloads/{country_slug}/{league_slug}/{team_slug}"
+                    print(f"Downloading images for team {team['teamLabel']['value']}...")
+                    download_images(
+                        country_slug,
+                        league_slug,
+                        team_slug,
+                        year,
+                        kit_images,
+                    )
 
-                for kit, _ in kit_images.items():
-                    get_kits_from_query(kit, year, team['team']['value'], slug, engine)
+                    slug = f"{image_root}/downloads/{country_slug}/{league_slug}/{team_slug}"
 
-            else:
-                logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}|No images matching search terms found for team {teamLabel} and {year}.")
+                    for kit, _ in kit_images.items():
+                        get_kits_from_query(kit, year, team['teamID']['value'], slug)
+
+                else:
+                    logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}|No images matching search terms found for team {teamLabel} and {year}.")
 
 
 logging.basicConfig(
@@ -248,19 +251,26 @@ if __name__ == "__main__":
     logging.debug("START")
     logging.debug("RUN QUERY")
 
-    # process leagues
-    leagues = run_query('./kit_scraper/queries/all_leagues.sparql')
-    get_leagues_from_query(leagues)
+    if False:
+        # process leagues
+        logging.debug("Get Leagues")
+        leagues = run_query('./kit_scraper/queries/all_leagues.sparql')
+        get_leagues_from_query(leagues)
 
-    # process teams
-    teams = run_query('./kit_scraper/queries/all_teams.sparql')
-    get_teams_from_query(teams)
+    if True:
+        # process teams
+        logging.debug("Get Teams")
+        teams = run_query('./kit_scraper/queries/all_teams.sparql')
+        get_teams_from_query(teams)
 
     # process kits
     logging.debug("DOWNLOAD KITS")
 
     # Start the download process
-    download_kits(teams)
-    logging.debug("PREPARE DATA")
+
+    if True:
+        download_club_kits(teams, 2020)
+        logging.debug("PREPARE DATA")
 
     get_colors_from_kits()
+

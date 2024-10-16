@@ -1,10 +1,9 @@
-SELECT?level ?league ?leagueLabel
-WHERE {
+SELECT ?level ?league ?leagueLabel WHERE {
   
   {   
     # Case 1: Leagues with qualifier for league level
-    ?league wdt:P31 wd:Q15991303.  # League is a football league
-    ?league p:P361 ?statement.  # League is part of a league system
+    ?leagueID wdt:P31 wd:Q15991303.  # League is a football league
+    ?leagueID p:P361 ?statement.  # League is part of a league system
     ?statement ps:P361 ?league_system;  # League system link
                pq:P3983 ?level.  # Qualifier for league level
     ?pq_qual wikibase:qualifier pq:P3983.  # Qualifier statement for level
@@ -17,7 +16,7 @@ WHERE {
   
   {
     # Case 2: Leagues with direct league level assignment
-    ?league wdt:P31 wd:Q15991303;  # League is a football league
+    ?leagueID wdt:P31 wd:Q15991303;  # League is a football league
             wdt:P3983 ?level;  # League level property
             wdt:P17 ?country.  # Country of the league
   
@@ -29,21 +28,20 @@ WHERE {
   UNION
   
   {
-   
     # Specified leagues (MLS, USL Championship, USL League One)
-    VALUES ?league {
+    VALUES ?leagueID {
       wd:Q30636616  # MLS
       wd:Q1362411   # USL Championship
       wd:Q18543     # USL League One
     }
- 
-    
   }
   
+  # Extract the league ID from the URL
+  BIND(SUBSTR(STR(?leagueID), 32) AS ?league)
   
   # Retrieve labels in English for readability
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 
-# Order results by country, level, league, and team
+# Order results by level, league ID, and league label
 ORDER BY ?level ?league

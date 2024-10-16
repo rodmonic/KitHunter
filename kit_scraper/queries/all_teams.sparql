@@ -1,4 +1,4 @@
-SELECT (SAMPLE(?countryLabel) AS ?countryLabel) ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+SELECT (SAMPLE(?countryLabel) AS ?countryLabel) ?level ?leagueID ?leagueLabel ?teamID ?teamLabel ?wikipediaLink
 WHERE {
   
   {   
@@ -47,14 +47,15 @@ WHERE {
     
     # Linking teams to the leagues
     ?team wdt:P118 ?league.  # Team plays in one of the specified leagues
-  
   }
-  
   
   ?team wdt:P17 ?country.
   ?country rdfs:label ?countryLabel.  # Get country label
   FILTER(LANG(?countryLabel) = "en")  # Ensure country label is in English
   
+  # Extract the team and league IDs from the URLs
+  BIND(SUBSTR(STR(?team), 32) AS ?teamID)
+  BIND(SUBSTR(STR(?league), 32) AS ?leagueID)
   
   # Retrieve the English Wikipedia link if available
   OPTIONAL {
@@ -67,7 +68,7 @@ WHERE {
 }
 
 # Use SAMPLE for country to limit to the first one
-GROUP BY ?level ?league ?leagueLabel ?team ?teamLabel ?wikipediaLink
+GROUP BY ?level ?leagueID ?leagueLabel ?teamID ?teamLabel ?wikipediaLink
 
-# Order results by level, league, and team
-ORDER BY ?countryLabel ?level ?league ?team
+# Order results by country, level, league, and team
+ORDER BY ?countryLabel ?level ?leagueID ?teamID
