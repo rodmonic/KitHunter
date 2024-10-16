@@ -18,9 +18,17 @@ const DataExplorer = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedSeason, setSelectedSeason] = useState(null);
 
+  // token for authentication
+  const token = sessionStorage.getItem('token');
+  const headers = {
+    'Authorization': `Token ${token}`
+  }
+
   // Fetch the list of countries on mount
   useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/leagues/countries/') // Adjust the endpoint to match your Django API
+    axios.get('http://localhost:8000/api/v1/leagues/countries/', {
+      headers: headers
+    }) 
       .then(response => setCountries(response.data))
       .catch(error => console.error('Error fetching countries:', error));
   }, []);
@@ -28,7 +36,9 @@ const DataExplorer = () => {
   // Fetch leagues when a country is selected
   useEffect(() => {
     if (selectedCountry) {
-      axios.get(`http://localhost:8000/api/v1/leagues/?country=${selectedCountry}`)
+      axios.get(`http://localhost:8000/api/v1/leagues/?country=${selectedCountry}`, {
+        headers: headers
+      }) 
         .then(response => setLeagues(response.data))
         .catch(error => console.error('Error fetching leagues:', error));
     }
@@ -37,7 +47,9 @@ const DataExplorer = () => {
   // Fetch teams when a league is selected
   useEffect(() => {
     if (selectedLeague) {
-      axios.get(`http://localhost:8000/api/v1/teams/?league_id=${selectedLeague}`)
+      axios.get(`http://localhost:8000/api/v1/teams/?league_id=${selectedLeague}`, {
+        headers: headers
+      }) 
         .then(response => setTeams(response.data))
         .catch(error => console.error('Error fetching teams:', error));
     }
@@ -46,7 +58,9 @@ const DataExplorer = () => {
   // Fetch seasons when a team is selected
   useEffect(() => {
     if (selectedTeam) {
-      axios.get(`http://localhost:8000/api/v1/kits/seasons/?team_id=${selectedTeam}`)
+      axios.get(`http://localhost:8000/api/v1/kits/seasons/?team_id=${selectedTeam}`, {
+        headers: headers
+      }) 
         .then(response => setSeasons(response.data))
         .catch(error => console.error('Error fetching seasons:', error));
     }

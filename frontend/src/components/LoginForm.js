@@ -15,7 +15,7 @@ const LoginForm = () => {
     const credentials = { username, password };
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/token/", {
+      const response = await fetch("http://localhost:8000/api/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

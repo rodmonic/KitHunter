@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
+    'knox',
     'corsheaders',
     'app'
 ]
@@ -57,9 +57,8 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
+        'knox.auth.TokenAuthentication',
+    ]
 }
 
 ROOT_URLCONF = 'kit_hunter.urls'

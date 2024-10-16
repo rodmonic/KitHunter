@@ -13,7 +13,6 @@ import mwclient
 import shutil
 import urllib
 
-image_root = "~/frontend/public/"
 
 user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
 site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
@@ -231,7 +230,7 @@ def download_club_kits(teams, season):
                         kit_images,
                     )
 
-                    slug = f"{image_root}/downloads/{country_slug}/{league_slug}/{team_slug}"
+                    slug = f"./downloads/{country_slug}/{league_slug}/{team_slug}"
 
                     for kit, _ in kit_images.items():
                         get_kits_from_query(kit, year, team['teamID']['value'], slug)

@@ -8,20 +8,22 @@ from .serializers import (
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-
+from django.contrib.auth import login
 from django.contrib.auth.models import Group, User
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from knox.views import LoginView as KnoxLoginView
 
 
-class CustomAuthToken(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+class LoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key})
+        login(request, user)
+        return super(LoginView, self).post(request, format=None)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -44,6 +46,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class LeagueViewSet(viewsets.ModelViewSet):
     queryset = League.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -71,6 +74,7 @@ class LeagueViewSet(viewsets.ModelViewSet):
 
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -89,6 +93,7 @@ class TeamViewSet(viewsets.ModelViewSet):
 
 class KitViewSet(viewsets.ModelViewSet):
     queryset = Kit.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -149,6 +154,7 @@ class KitViewSet(viewsets.ModelViewSet):
 
 class KitColorViewSet(viewsets.ModelViewSet):
     queryset = KitColor.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

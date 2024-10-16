@@ -3,6 +3,12 @@ import axios from 'axios';
 import { Card, Col, Row } from 'antd';
 import DisplayKit from './DisplayKit';
 
+  // token for authentication
+  const token = sessionStorage.getItem('token');
+  const headers = {
+    'Authorization': `Token ${token}`
+  }
+
 const ImageGallery = ({ season, team }) => {
   // State for each list
   const [kits, setKits] = useState([]);
@@ -20,7 +26,7 @@ const ImageGallery = ({ season, team }) => {
       return; // Exit early
     }
 
-    axios.get(url)
+    axios.get(url, {headers: headers})
       .then(response => setKits(response.data))
       .catch(error => console.error('Error fetching kits:', error));
   }, [season, team]);
