@@ -14,13 +14,11 @@
             "name": "Django",
             "type": "debugpy",
             "request": "launch",
-            "stopOnEntry": false,
-            "program": "${workspaceRoot}/backend/manage.py",
-            "args": [
-                "runserver",
-                "--no-color",
-            ],
-        }
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": ["runserver"],
+            "django": true,
+            "justMyCode": true
+          }
     ],
     "compounds" :[
         {
