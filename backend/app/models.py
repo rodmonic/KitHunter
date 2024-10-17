@@ -38,9 +38,7 @@ class Team(models.Model):
 
 class Kit(models.Model):
     kit_type = models.CharField(max_length=10)
-    kit_part = models.CharField(max_length=10, null=True, blank=True)
-    image = models.CharField(max_length=50, null=True, blank=True)
-    season = models.IntegerField(blank=True, null=True)
+    season = models.CharField(max_length=7, blank=True, null=True)
     sponsor = models.CharField(blank=True, null=True, max_length=50)
     team = models.ForeignKey(Team, models.CASCADE)
 
@@ -51,11 +49,19 @@ class Kit(models.Model):
         return self.slug
 
 
-class KitColor(models.Model):
-    red = models.IntegerField()
-    green = models.IntegerField()
-    blue = models.IntegerField()
-    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
+class KitPart(models.Model):
+    kit_part = models.CharField(max_length=10, null=True, blank=True)
+    image = models.CharField(max_length=50, null=True, blank=True)
+    background_color = models.CharField(max_length=7, default=None)
+    kit = models.ForeignKey(Kit, models.CASCADE)
 
     class Meta:
-        db_table = 'kitcolor'
+        db_table = 'kit_part'
+
+
+class KitPartColor(models.Model):
+    color = models.CharField(max_length=7, default=None)
+    kit = models.ForeignKey(KitPart, models.CASCADE)
+
+    class Meta:
+        db_table = 'kit_part_color'

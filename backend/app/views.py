@@ -1,9 +1,9 @@
-from .models import League, Team, Kit, KitColor
+from .models import League, Team, Kit, KitPart, KitPartColor
 from .serializers import (
     LeagueSerializer, LeagueWriteSerializer,
     TeamSerializer, TeamWriteSerializer, KitSerializer,
-    KitWriteSerializer, KitColorSerializer, KitColorWriteSerializer,
-    GroupSerializer, UserSerializer
+    KitWriteSerializer, KitPartColorSerializer, KitPartColorWriteSerializer, 
+    KitPartSerializer, KitPartWriteSerializer, GroupSerializer, UserSerializer
 )
 
 from rest_framework import viewsets, permissions
@@ -152,11 +152,27 @@ class KitViewSet(viewsets.ModelViewSet):
         return Response(list(seasons))
 
 
-class KitColorViewSet(viewsets.ModelViewSet):
-    queryset = KitColor.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+class KitPartViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing KitPart instances.
+    """
+    queryset = KitPart.objects.all()
 
+    # Use different serializers for reading and writing
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return KitColorWriteSerializer
-        return KitColorSerializer
+            return KitPartWriteSerializer
+        return KitPartSerializer
+
+
+class KitPartColorViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing KitPartColor instances.
+    """
+    queryset = KitPartColor.objects.all()
+
+    # Use different serializers for reading and writing
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return KitPartColorWriteSerializer
+        return KitPartColorSerializer

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
-from .models import League, Team, Kit, KitColor
+from .models import League, Team, Kit, KitPart, KitPartColor
 
 
 # Users
@@ -18,59 +18,71 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ['url', 'name']
 
 
-# Kit Colors
-class KitColorSerializer(serializers.ModelSerializer):
+# read serialisers
+class KitPartColorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = KitColor
-        fields = ['id', 'part', 'red', 'green', 'blue', 'kit']
+        model = KitPartColor
+        fields = ['id', 'color']
 
 
-class KitColorWriteSerializer(serializers.ModelSerializer):
+class KitPartSerializer(serializers.ModelSerializer):
+    colors = KitPartColorSerializer(many=True, read_only=True, source='kitpartcolor_set')
+
     class Meta:
-        model = KitColor
-        fields = ['id', 'part', 'red', 'green', 'blue', 'kit']  # Serializer for creating KitColor instances
+        model = KitPart
+        fields = ['id', 'kit_part', 'image', 'background_color', 'kit', 'colors']
 
 
-# Kits
 class KitSerializer(serializers.ModelSerializer):
-    kitcolors = KitColorSerializer(many=True, read_only=True)  # Nested serializer for kit colors
+    parts = KitPartSerializer(many=True, read_only=True, source='kitpart_set')
 
     class Meta:
         model = Kit
-        fields = ['id', 'kit_type', 'season', 'sponsor', 'team', 'slug', 'kitcolors']
+        fields = ['id', 'kit_type', 'season', 'sponsor', 'team', 'parts']
 
 
-class KitWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Kit
-        fields = ['id', 'kit_type', 'season', 'sponsor', 'team', 'slug']  # Serializer for creating Kit instances
-
-
-# Teams
 class TeamSerializer(serializers.ModelSerializer):
-    kits = KitSerializer(many=True, read_only=True)  # Nested serializer for kits
+    kits = KitSerializer(many=True, read_only=True, source='kit_set')
 
     class Meta:
         model = Team
         fields = ['id', 'name', 'league', 'wiki_link', 'country', 'kits']
 
 
-class TeamWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Team
-        fields = ['id', 'name', 'league', 'wiki_link', 'country']  # Serializer for creating Team instances
-
-
-# Leagues
 class LeagueSerializer(serializers.ModelSerializer):
-    teams = TeamSerializer(many=True, read_only=True)  # Nested serializer for related teams
+    teams = TeamSerializer(many=True, read_only=True, source='team_set')
 
     class Meta:
         model = League
-        fields = ['id', 'league_name', 'level', 'teams']  # Include related teams
+        fields = ['id', 'league_name', 'level', 'country', 'teams']
 
 
+# Write Serialisers
 class LeagueWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = League
-        fields = ['id', 'league_name', 'level']  # Serializer for creating League instances
+        fields = ['id', 'league_name', 'level', 'country']
+
+
+class TeamWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ['id', 'name', 'league', 'wiki_link', 'country']
+
+
+class KitWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Kit
+        fields = ['kit_type', 'season', 'sponsor', 'team']
+
+
+class KitPartWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitPart
+        fields = ['kit_part', 'image', 'background_color', 'kit']
+
+
+class KitPartColorWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitPartColor
+        fields = ['color', 'kit']
