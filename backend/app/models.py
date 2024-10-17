@@ -51,7 +51,7 @@ class Kit(models.Model):
 
 class KitPart(models.Model):
     kit_part = models.CharField(max_length=10, null=True, blank=True)
-    image = models.CharField(max_length=50, null=True, blank=True)
+    image_name = models.CharField(max_length=50, null=True, blank=True)
     background_color = models.CharField(max_length=7, default=None)
     kit = models.ForeignKey(Kit, models.CASCADE)
 
