@@ -1,22 +1,31 @@
 from data_gathering import slugify, run_query
-from image_funcs import convert_svg_to_png, fill_in_background_color
+from image_funcs import convert_svg_to_png  # fill_in_background_color
 from time import strftime
 import logging
-from data_gathering import get_leagues_from_query, get_teams_from_query, get_kits_from_query, get_colors_from_kits, kit_exists
+from data_gathering import get_leagues_from_query, get_teams_from_query, kit_exists
 
 import os
+import sys
 
 import requests
 from bs4 import BeautifulSoup
 
 import mwclient
-import shutil
 import urllib
+
+import django
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kit_hunter.settings')
+django.setup()
+
+
+from app.models import Team, League, Kit, KitPart, KitPartColor  # noqa: E402
 
 
 user_agent = 'KitHunter/0.1 (dominic.mccaskill@gmail.com)'
 site = mwclient.Site('commons.wikimedia.org', clients_useragent=user_agent)
-cache_dir = "./kit_scraper/cache/"
+image_dir = "./frontend/public/images/"
 
 # List of search terms
 kit_parts = [
@@ -43,6 +52,7 @@ def get_images_by_kit_part(soup, kit_parts: list[str]) -> list[tuple[str, str]]:
 
     for kit_part in kit_parts:
         kit_part_images = soup.find_all('img', src=lambda src: src and kit_part in src)
+
         for img in kit_part_images:
             src = img.get('src')
             if src:
@@ -62,8 +72,7 @@ def get_images_by_kit_part(soup, kit_parts: list[str]) -> list[tuple[str, str]]:
                         else:
                             images[kit_type] = [(kit_part, full_img_url, background_color)]
 
-    if images:
-        pass
+    # Delete multiple entries for the same kit type
 
     return images
 
@@ -121,79 +130,63 @@ def get_kit_type_images(url, kit_parts):
     return kit_types
 
 
-def download_images(country_label, league_label, team_name, year, kit_type_images):
+def create_kits(season, kit_type_images, team_id):
 
-    logging.debug(f"DOWLOAD KITS|GET IMAGES||{country_label}|{league_label}|{team_name}|{year}")
-    # Create the team directory if it doesn't exist
-    team_dir = os.path.join('downloads', country_label, league_label, team_name, str(year))
-    os.makedirs(team_dir, exist_ok=True)
-
-    # Loop through the image groups (by <td>)
     for kit_type, images in kit_type_images.items():
-        group_dir = os.path.join(team_dir, kit_type)
-        os.makedirs(group_dir, exist_ok=True)
 
-        file_count = len([f for f in os.listdir(group_dir) if os.path.isfile(os.path.join(group_dir, f))])
+        new_kit = Kit(
+            kit_type=kit_type,
+            season=season,
+            sponsor=None,
+            team_id=team_id
+        )
 
-        if file_count >= 3:
-            logging.debug(f"DOWNLOAD KITS|GET IMAGES||{country_label}|{league_label}|{team_name}|{year}|Skipped")
-            continue
+        new_kit.save()
 
         # Loop through each search term's images in the group
         for kit_part, image_name, background_color in images:
 
             image_name = image_name.split("/")[-1]
-            decoded_image_name = urllib.parse.unquote(image_name)
-            mapped_image_name = image_map.get(decoded_image_name, decoded_image_name)
-            image = site.images[mapped_image_name]
+            image_name = urllib.parse.unquote(image_name)
+            image_name = image_map.get(image_name, image_name)
+            image = site.images[image_name]
+            image_path = os.path.join(image_dir, image_name)
 
             if not image.exists:
-                logging.debug(f"DOWNLOAD KITS|GET IMAGES|{country_label}|{league_label}|{team_name}|{year}|{kit_part}|Does Not Exist on Wikipedia")
                 print(f"Image {image_name} does not exist on Wikimedia Commons.")
                 continue
 
-            # first check if image exists in the cache.
-            cache_path = os.path.join(cache_dir, mapped_image_name)
-
             # if not in cache then download it
-            if not os.path.isfile(cache_path):
+            if not os.path.isfile(image_path):
                 try:
-                    with open(cache_path, 'wb') as img_file:
+                    with open(image_path, 'wb') as img_file:
                         image.download(img_file)
-                        logging.debug(f"DOWNLOAD KITS|GET IMAGES|{country_label}|{league_label}|{team_name}|{year}|{kit_part}|Dowloaded from Wikipedia to Cache")
                 except Exception as e:
                     raise e
 
             # if the file is svg then convert to png as save
-            cache_path = convert_svg_to_png(cache_path, cache_dir)
+            image_path = convert_svg_to_png(image_path, image_dir)
 
-            try:
-                # copy the image from the cache to the corresponding team folder
-                img_filename = os.path.join(group_dir, f'{kit_part}.{cache_path.split(".")[-1]}')
+            if KitPart.objects.all().filter(kit_part__exact=kit_part).filter(kit=new_kit).exists():
+                continue
 
-                # if file already downloaded then cancel out
-                if os.path.isfile(img_filename):
-                    continue
+            new_kit_part = KitPart(
+                kit_part=kit_part,
+                image_name=image_name,
+                background_color=background_color,
+                kit=new_kit
+            )
 
-                shutil.copyfile(cache_path, img_filename)
-                logging.debug(f"DOWLOAD KITS|GET IMAGES||{country_label}|{league_label}|{team_name}|{year}|{kit_part}|Copied from Cache")
-                if background_color:
-                    fill_in_background_color(img_filename, background_color)
-
-                print(f"Downloaded {mapped_image_name} as {img_filename}")
-
-            except Exception as e:
-                logging.debug(f"DOWLOAD KITS|GET IMAGES||{country_label}|{league_label}|{team_name}|{year}|{kit_part}|Failed to get Image")
-                print(f"Failed to get image for {mapped_image_name}: {e}")
+            new_kit_part.save() 
 
 
-def download_club_kits(teams, season):
+def download_club_kits(teams, start_year):
 
     logging.debug("DOWLOAD KITS|GET IMAGES")
 
     # Loop through the list of Wikipedia URLs, get the images grouped by <td> and search terms, and download them
     for team in teams:
-
+        team_id = team['teamID']['value']
         try:
             teamLabel = team['wikipediaLink']['value'].split('/')[-1]
         except KeyError:
@@ -201,11 +194,12 @@ def download_club_kits(teams, season):
 
         logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}")
 
-        for year in range(2025, season - 1, -1):
+        for year in range(2025, start_year - 1, -1):
 
+            season = f'{year}-{str(year-1)[2:4]}'
             logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}")
 
-            if not kit_exists(year, team['teamID']['value']):
+            if not kit_exists(season, team_id):
 
                 # First try the current season
                 url_template = f"https://en.wikipedia.org/wiki/{year-1}–{abs(year) % 100}_{teamLabel}_season"
@@ -218,19 +212,12 @@ def download_club_kits(teams, season):
 
                 if kit_images:
 
-                    print(f"Downloading images for team {team['teamLabel']['value']}...")
-                    download_images(
-                        country_slug,
-                        league_slug,
-                        team_slug,
-                        year,
+                    print(f"Downloading images for team {team['teamLabel']['value']} - {season}...")
+                    create_kits(
+                        season,
                         kit_images,
+                        team_id
                     )
-
-                    slug = f"./downloads/{country_slug}/{league_slug}/{team_slug}"
-
-                    for kit, _ in kit_images.items():
-                        get_kits_from_query(kit, year, team['teamID']['value'], slug)
 
                 else:
                     logging.debug(f"DOWLOAD KITS|GET IMAGES|{teamLabel}|{year}|No images matching search terms found for team {teamLabel} and {year}.")
@@ -247,7 +234,7 @@ if __name__ == "__main__":
     logging.debug("START")
     logging.debug("RUN QUERY")
 
-    if False:
+    if True:
         # process leagues
         logging.debug("Get Leagues")
         leagues = run_query('./kit_scraper/queries/all_leagues.sparql')
@@ -268,5 +255,6 @@ if __name__ == "__main__":
         download_club_kits(teams, 2020)
         logging.debug("PREPARE DATA")
 
-    get_colors_from_kits()
-
+    if True:
+        pass
+        # get kit colours

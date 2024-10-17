@@ -18,6 +18,10 @@ const DataExplorer = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedSeason, setSelectedSeason] = useState(null);
 
+  // Lookups for crumb trail
+  const selectedLeagueObject = leagues.find(league => league.id === selectedLeague);
+  const selectedTeamObject = teams.find(team => team.id === selectedTeam);
+
   // token for authentication
   const token = sessionStorage.getItem('token');
   const headers = {
@@ -155,7 +159,11 @@ const DataExplorer = () => {
         )}
       </Row>
       <Row gutter={16}>
-        <h1>Kits</h1>
+        <h2>{selectedCountry} 
+          {selectedLeague ? ` > ${selectedLeagueObject.league_name}` :""}
+          {selectedTeam ? ` > ${selectedTeamObject.name}` :""}
+          {selectedSeason ? ` > ${selectedSeason}` :""}
+        </h2>
       </Row>
       <ImageGallery  
         season = {selectedSeason}

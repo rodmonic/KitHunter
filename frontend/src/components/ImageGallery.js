@@ -44,7 +44,7 @@ const ImageGallery = ({ season, team }) => {
                 }}
               >
                 <DisplayKit
-                folder = {kit.slug}
+                kit_id = {kit.id}
                 />
               </Card>
             </Col>

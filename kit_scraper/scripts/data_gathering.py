@@ -5,8 +5,9 @@ import re
 import os
 import sys
 from typing import Any, Dict, List, Optional
+import json
 
-from tqdm import tqdm
+
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 import django
@@ -17,7 +18,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kit_hunter.settings')
 django.setup()
 
 
-from app.models import Team, League, Kit, KitColor  # noqa: E402
+from app.models import Team, League, Kit, KitPart, KitPartColor  # noqa: E402
 
 
 def safe_get(d: Dict[str, Any], keys: List[str]) -> Optional[Any]:
@@ -30,6 +31,12 @@ def safe_get(d: Dict[str, Any], keys: List[str]) -> Optional[Any]:
 
 def run_query(file_path: str) -> list[tuple[str, str]]:
 
+    cache_file = file_path.replace(".sparql", ".json")
+
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r') as f:
+            return json.load(f)
+
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
 
     with open(file_path, 'r') as file:
@@ -38,6 +45,10 @@ def run_query(file_path: str) -> list[tuple[str, str]]:
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
+
+    # Save to cache file
+    with open(cache_file, 'w') as f:
+        json.dump(results['results']['bindings'], f)
 
     return results['results']['bindings']
 
@@ -92,43 +103,31 @@ def get_teams_from_query(teams):
             new_team.save()
 
 
-def get_kits_from_query(kit: str, year: int, team_id: Team, slug: str):
+# def get_colors_from_kits():
 
-    new_kit = Kit(
-        kit_type=kit,
-        season=year,
-        team_id=team_id,
-        slug=slug + f'/{year}/{kit}/'
-    )
+#     kits = Kit.objects.all()
+#     for kit in tqdm(kits):
 
-    new_kit.save()
+#         for file in os.listdir(kit.slug):
 
+#             split_file = file.split(".")
 
-def get_colors_from_kits():
+#             file_mask = f'./masks/{split_file[0]}_mask.{split_file[1]}'
+#             try:
+#                 dominant_colors = detect_dominant_colors(os.path.join(kit.slug, file), file_mask, 3)
+#             except Exception as e:
+#                 if e:
+#                     dominant_colors = []
 
-    kits = Kit.objects.all()
-    for kit in tqdm(kits):
-
-        for file in os.listdir(kit.slug):
-
-            split_file = file.split(".")
-
-            file_mask = f'./masks/{split_file[0]}_mask.{split_file[1]}'
-            try:
-                dominant_colors = detect_dominant_colors(os.path.join(kit.slug, file), file_mask, 3)
-            except Exception as e:
-                if e:
-                    dominant_colors = []
-
-            for color in dominant_colors:
-                new_kit_colour = KitColor(
-                    part=split_file[0].replace(" ", "_"),
-                    kit_id=kit.id,
-                    red=color[0],
-                    green=color[1],
-                    blue=color[2]
-                )
-                new_kit_colour.save()
+#             for color in dominant_colors:
+#                 new_kit_colour = KitColor(
+#                     part=split_file[0].replace(" ", "_"),
+#                     kit_id=kit.id,
+#                     red=color[0],
+#                     green=color[1],
+#                     blue=color[2]
+#                 )
+#                 new_kit_colour.save()
 
 
 def league_exists(id: str) -> bool:

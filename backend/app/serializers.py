@@ -30,7 +30,7 @@ class KitPartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KitPart
-        fields = ['id', 'kit_part', 'image', 'background_color', 'kit', 'colors']
+        fields = ['id', 'kit_part', 'image_name', 'background_color', 'kit', 'colors']
 
 
 class KitSerializer(serializers.ModelSerializer):

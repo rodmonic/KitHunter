@@ -112,7 +112,7 @@ class KitViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(team_id__exact=team_id)
 
         if season:
-            queryset = queryset.filter(season=season)
+            queryset = queryset.filter(season__exact=season)
 
         # Serialize the filtered queryset
         serializer = self.get_serializer(queryset, many=True)
@@ -127,12 +127,12 @@ class KitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path=r'(?P<team_id>[^/.]+)/(?P<season>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'(?P<team_id>[^\/.]+)\/(?P<season>[^\/.]+)')
     def list_by_team_and_season(self, request, team_id=None, season=None):
         """
         Custom action to list kits filtered by team_id and season.
         """
-        queryset = self.queryset.filter(team_id=team_id, season=season)
+        queryset = self.queryset.filter(team=team_id, season=season)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -157,12 +157,22 @@ class KitPartViewSet(viewsets.ModelViewSet):
     A viewset for viewing and editing KitPart instances.
     """
     queryset = KitPart.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     # Use different serializers for reading and writing
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return KitPartWriteSerializer
         return KitPartSerializer
+    
+    @action(detail=False, methods=['get'], url_path=r'(?P<kit_id>[^/.]+)')
+    def list_by_team(self, request, kit_id=None):
+        """
+        Custom action to list kit_parts filtered by Kit_id.
+        """
+        queryset = self.queryset.filter(kit_id=kit_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class KitPartColorViewSet(viewsets.ModelViewSet):
@@ -170,6 +180,7 @@ class KitPartColorViewSet(viewsets.ModelViewSet):
     A viewset for viewing and editing KitPartColor instances.
     """
     queryset = KitPartColor.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     # Use different serializers for reading and writing
     def get_serializer_class(self):

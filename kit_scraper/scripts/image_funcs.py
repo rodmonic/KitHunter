@@ -1,5 +1,3 @@
-from PIL import Image
-import logging
 import cairosvg
 import os
 import cv2
@@ -48,37 +46,6 @@ def hex_to_rgb(hex_color: str) -> tuple:
         return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
     else:
         raise ValueError(f"Invalid hex color code: {hex_color}")
-
-
-def fill_in_background_color(file, color):
-    # Define the new background color (R, G, B)
-
-    try:
-        background_color = hex_to_rgb(color)  # Red background
-    except ValueError:
-        logging.debug(f"DOWLOAD KITS|Fill In Background Color|Error|{file}, {color}")
-        return
-
-    # Open the existing image
-    existing_image = Image.open(file)
-
-    # Get the size of the existing image
-    width, height = existing_image.size
-
-    # Create a new image with the same size and the background color
-    background = Image.new('RGB', (width, height), background_color)
-
-    # Paste the existing image onto the background
-    # We use the alpha channel if the existing image has transparency
-    background.paste(existing_image, (0, 0), existing_image.convert('RGBA'))
-
-    # Save the new image
-    background.save(file)
-
-
-# Example usage:
-image_path = './downloads/Kit_left_arm_2.png'
-mask_path = './downloads/Kit_left_arm_mask.png'  # Path to your mask image
 
 
 def detect_dominant_colors(image_path, mask_path, k=3):

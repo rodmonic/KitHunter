@@ -1,4 +1,4 @@
-SELECT ?level ?league ?leagueLabel WHERE {
+SELECT ?level ?league ?leagueIDLabel WHERE {
   
   {   
     # Case 1: Leagues with qualifier for league level
