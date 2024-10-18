@@ -2,12 +2,9 @@
 import React, { useState } from 'react';
 import DataExplorer from './DataExplorer';
 
-
+import { HomeOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import {
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-  UserOutlined,
   SearchOutlined,
   SkinOutlined,
 } from '@ant-design/icons';
@@ -16,22 +13,8 @@ const { Header, Sider, Content } = Layout;
 // const { Panel } = Collapse;
 
 const App = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState('1'); // Track selected menu item
-  const [selectedCountry, setSelectedCountry] = useState(null); // Track selected country
 
-  const toggle = () => {
-    setCollapsed(!collapsed);
-  };
-
-  const handleMenuClick = (e) => {
-    setSelectedMenu(e.key);
-    setSelectedCountry(null);
-  };
-
-  const handleCountryClick = (country) => {
-    setSelectedCountry(selectedCountry === country ? null : country); // Toggle country selection
-  };
 
   // Define content for each menu item
   const renderContent = () => {
@@ -47,45 +30,26 @@ const App = () => {
     }
   };
 
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="logo" />
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={['1']}
-          onClick={handleMenuClick}
-        >
-          <Menu.Item key="1" icon={<UserOutlined />}>
-            Home
+      <Layout>
+      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="logo" style={{ color: '#fff', fontSize: '24px' }}>
+          Kit Hunter
+        </div>
+        <Menu theme="dark" mode="horizontal" selectable={false} style={{ display: 'flex', gap: '20px' }}>
+          <Menu.Item key="home" onClick={() => setSelectedMenu('1')}>
+            <HomeOutlined style={{ fontSize: '18px' }} />
           </Menu.Item>
-          <Menu.Item key="2" icon={<SkinOutlined />}>
-            Hunt
+          <Menu.Item key="profile" onClick={() => setSelectedMenu('2')}>
+            <UserOutlined style={{ fontSize: '18px' }} />
           </Menu.Item>
-          <Menu.Item key="3" icon={<SearchOutlined />}>
-            Search
+          <Menu.Item key="settings" onClick={() => setSelectedMenu('3')}>
+            <SettingOutlined style={{ fontSize: '18px' }} />
           </Menu.Item>
         </Menu>
-      </Sider>
-      <Layout>
-        <Header
-          style={{
-            padding: 0,
-            background: '#001529',
-            color: '#fff',
-            textAlign: 'center',
-          }}
-        >
-          {React.createElement(
-            collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
-            {
-              className: 'trigger',
-              onClick: toggle,
-            }
-          )}
-          Kit Hunter
-        </Header>
+      </Header>
         <Content
           style={{
             margin: '24px 16px',
