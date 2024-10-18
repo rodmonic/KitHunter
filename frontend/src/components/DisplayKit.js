@@ -16,7 +16,7 @@ useEffect(() => {
     }) 
       .then(response => setImages(response.data))
       .catch(error => console.error('Error fetching countries:', error));
-  }, [headers, kit_id]);
+  }, [kit_id]);
 
 
 return (

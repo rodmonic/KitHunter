@@ -3,15 +3,16 @@ import axios from 'axios';
 import { Card, Col, Row } from 'antd';
 import DisplayKit from './DisplayKit';
 
+
+const ImageGallery = ({ season, team }) => {
+  // State for each list
+  const [kits, setKits] = useState([]);
+
   // token for authentication
   const token = sessionStorage.getItem('token');
   const headers = {
     'Authorization': `Token ${token}`
   }
-
-const ImageGallery = ({ season, team }) => {
-  // State for each list
-  const [kits, setKits] = useState([]);
 
   // Fetch kits when a season or team is selected
   useEffect(() => {
@@ -57,4 +58,4 @@ const ImageGallery = ({ season, team }) => {
   );
 };
 
-export default ImageGallery;
+export default React.memo(ImageGallery);
