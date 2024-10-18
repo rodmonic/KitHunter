@@ -164,7 +164,7 @@ class KitPartViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitPartWriteSerializer
         return KitPartSerializer
-    
+   
     @action(detail=False, methods=['get'], url_path=r'(?P<kit_id>[^/.]+)')
     def list_by_team(self, request, kit_id=None):
         """
