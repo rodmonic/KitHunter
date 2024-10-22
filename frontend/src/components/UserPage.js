@@ -1,13 +1,10 @@
 // App.js
 import React, { useState } from 'react';
 import DataExplorer from './DataExplorer';
+import KitLogForm from './KitLogForm';
 
-import { HomeOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
+import { SearchOutlined, UserOutlined, PlusOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
-import {
-  SearchOutlined,
-  SkinOutlined,
-} from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
 // const { Panel } = Collapse;
@@ -20,11 +17,11 @@ const App = () => {
   const renderContent = () => {
     switch (selectedMenu) {
       case '1':
-        return <div>Home Content</div>;
+        return <div><KitLogForm /></div>;
       case '2':
-        return <div>About Content</div>;
-      case '3':
         return <div><DataExplorer /></div>;
+      case '3':
+        return <div>User Stuff</div>;
       default:
         return <div>Home Content</div>;
     }
@@ -39,14 +36,14 @@ const App = () => {
           Kit Hunter
         </div>
         <Menu theme="dark" mode="horizontal" selectable={false} style={{ display: 'flex', gap: '20px' }}>
-          <Menu.Item key="home" onClick={() => setSelectedMenu('1')}>
-            <HomeOutlined style={{ fontSize: '18px' }} />
+          <Menu.Item key="add" onClick={() => setSelectedMenu('1')}>
+            <PlusOutlined style={{ fontSize: '18px' }} />
           </Menu.Item>
-          <Menu.Item key="profile" onClick={() => setSelectedMenu('2')}>
+          <Menu.Item key="search" onClick={() => setSelectedMenu('2')}>
+            <SearchOutlined style={{ fontSize: '18px' }} />
+          </Menu.Item>
+          <Menu.Item key="profile" onClick={() => setSelectedMenu('3')}>
             <UserOutlined style={{ fontSize: '18px' }} />
-          </Menu.Item>
-          <Menu.Item key="settings" onClick={() => setSelectedMenu('3')}>
-            <SettingOutlined style={{ fontSize: '18px' }} />
           </Menu.Item>
         </Menu>
       </Header>

@@ -1,176 +1,119 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Row, Col, Select } from 'antd';
-import ImageGallery from './ImageGallery'
+import ImageGallery from './ImageGallery';
 
 const { Option } = Select;
 
 const DataExplorer = () => {
-  // State for each list
+  // State for lists and selections
   const [countries, setCountries] = useState([]);
   const [leagues, setLeagues] = useState([]);
   const [teams, setTeams] = useState([]);
   const [seasons, setSeasons] = useState([]);
-
-  // State for current selections
+  
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedLeague, setSelectedLeague] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedSeason, setSelectedSeason] = useState(null);
 
-  // Lookups for crumb trail
-  const selectedLeagueObject = leagues.find(league => league.id === selectedLeague);
-  const selectedTeamObject = teams.find(team => team.id === selectedTeam);
+  const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
-  // token for authentication
-  const token = sessionStorage.getItem('token');
-  const headers = {
-    'Authorization': `Token ${token}`
-  }
+  // Fetch data utility
+  const fetchData = (url, setter) => {
+    axios.get(url, { headers })
+      .then(response => setter(response.data))
+      .catch(error => console.error(`Error fetching data from ${url}:`, error));
+  };
 
-  // Fetch the list of countries on mount
+  // Fetch lists based on current selections
+  useEffect(() => fetchData('http://localhost:8000/api/v1/leagues/countries/', setCountries), []);
   useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/leagues/countries/', {
-      headers: headers
-    }) 
-      .then(response => setCountries(response.data))
-      .catch(error => console.error('Error fetching countries:', error));
-  }, []);
-
-  // Fetch leagues when a country is selected
-  useEffect(() => {
-    if (selectedCountry) {
-      axios.get(`http://localhost:8000/api/v1/leagues/?country=${selectedCountry}`, {
-        headers: headers
-      }) 
-        .then(response => setLeagues(response.data))
-        .catch(error => console.error('Error fetching leagues:', error));
-    }
+    if (selectedCountry) fetchData(`http://localhost:8000/api/v1/leagues/?country=${selectedCountry}`, setLeagues);
   }, [selectedCountry]);
-
-  // Fetch teams when a league is selected
   useEffect(() => {
-    if (selectedLeague) {
-      axios.get(`http://localhost:8000/api/v1/teams/?league_id=${selectedLeague}`, {
-        headers: headers
-      }) 
-        .then(response => setTeams(response.data))
-        .catch(error => console.error('Error fetching teams:', error));
-    }
+    if (selectedLeague) fetchData(`http://localhost:8000/api/v1/teams/?league_id=${selectedLeague}`, setTeams);
   }, [selectedLeague]);
-
-  // Fetch seasons when a team is selected
   useEffect(() => {
-    if (selectedTeam) {
-      axios.get(`http://localhost:8000/api/v1/kits/seasons/?team_id=${selectedTeam}`, {
-        headers: headers
-      }) 
-        .then(response => setSeasons(response.data))
-        .catch(error => console.error('Error fetching seasons:', error));
-    }
+    if (selectedTeam) fetchData(`http://localhost:8000/api/v1/kits/seasons/?team_id=${selectedTeam}`, setSeasons);
   }, [selectedTeam]);
 
+  // Common select change handler
+  const handleSelectChange = (setter, resetters = []) => (value) => {
+    setter(value);
+    resetters.forEach(reset => reset(null));
+  };
+
   return (
-    <div>
-    <div>
-      {/* Countries, Leagues, Teams, and Kits */}
-      <Row gutter={16}>
-        <Col span={6}>
-          <Select
-            style={{ width: '100%' }}
-            placeholder="Select a Country"
-            onChange={(value) => {
-              setSelectedCountry(value);
-              setSelectedLeague(null);
-              setSelectedTeam(null);
-              setSelectedSeason(null);
-            }}
-            value={selectedCountry}
-            allowClear
-          >
-            {countries.map((country, index) => (
-              <Option key={index} value={country}>
-                {country}
-              </Option>
-            ))}
-          </Select>
-        </Col>
+    <Row gutter={8} style={{ height: '100%' }}>
+      {/* Left Column for Select Boxes */}
+      <Col span={4} style={{ padding: '16px' }}>
+        <Select
+          style={{ width: '100%' }}
+          placeholder="Select a Country"
+          onChange={handleSelectChange(setSelectedCountry, [setSelectedLeague, setSelectedTeam, setSelectedSeason])}
+          value={selectedCountry}
+          allowClear
+        >
+          {countries.map((country, index) => (
+            <Option key={index} value={country}>{country}</Option>
+          ))}
+        </Select>
 
         {selectedCountry && (
-          <Col span={6}>
-            <Select
-              style={{ width: '100%' }}
-              placeholder="Select a League"
-              onChange={(value) =>
-              {
-                setSelectedLeague(value);
-                setSelectedTeam(null);
-                setSelectedSeason(null);
-              }}
-              value={selectedLeague}
-              allowClear
-            >
-              {leagues.map((league) => (
-                <Option key={league.id} value={league.id}>
-                  {league.league_name}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+          <Select
+            style={{ width: '100%', marginTop: '16px' }}
+            placeholder="Select a League"
+            onChange={handleSelectChange(setSelectedLeague, [setSelectedTeam, setSelectedSeason])}
+            value={selectedLeague}
+            allowClear
+          >
+            {leagues.map(league => (
+              <Option key={league.id} value={league.id}>{league.league_name}</Option>
+            ))}
+          </Select>
         )}
 
         {selectedLeague && (
-          <Col span={6}>
-            <Select
-              style={{ width: '100%' }}
-              placeholder="Select a Team"
-              onChange={(value) =>               {
-                setSelectedTeam(value);
-                setSelectedSeason(null);
-              }}
-              value={selectedTeam}
-              allowClear
-            >
-              {teams.map((team) => (
-                <Option key={team.id} value={team.id}>
-                  {team.name}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+          <Select
+            style={{ width: '100%', marginTop: '16px' }}
+            placeholder="Select a Team"
+            onChange={handleSelectChange(setSelectedTeam, [setSelectedSeason])}
+            value={selectedTeam}
+            allowClear
+          >
+            {teams.map(team => (
+              <Option key={team.id} value={team.id}>{team.name}</Option>
+            ))}
+          </Select>
         )}
 
         {selectedTeam && (
-          <Col span={6}>
-            <Select
-              style={{ width: '100%' }}
-              placeholder="Select a Season"
-              onChange={(value) => setSelectedSeason(value)}
-              value={selectedSeason} // Kits are displayed as a list and not selected in this dropdown
-              allowClear
-            >
-              {seasons.map((season, index) => (
-                <Option key={index} value={season}>
-                  {season}
-                </Option>
-              ))}
-            </Select>
-          </Col>
+          <Select
+            style={{ width: '100%', marginTop: '16px' }}
+            placeholder="Select a Season"
+            onChange={setSelectedSeason}
+            value={selectedSeason}
+            allowClear
+          >
+            {seasons.map((season, index) => (
+              <Option key={index} value={season}>{season}</Option>
+            ))}
+          </Select>
         )}
-      </Row>
-      <Row gutter={16}>
-        <h2>{selectedCountry} 
-          {selectedLeague ? ` > ${selectedLeagueObject.league_name}` :""}
-          {selectedTeam ? ` > ${selectedTeamObject.name}` :""}
-          {selectedSeason ? ` > ${selectedSeason}` :""}
+      </Col>
+
+      {/* Right Column for Displaying Content */}
+      <Col span={18} style={{ padding: '16px' }}>
+        <h2>
+          {selectedCountry}
+          {selectedLeague && ` > ${leagues.find(l => l.id === selectedLeague)?.league_name}`}
+          {selectedTeam && ` > ${teams.find(t => t.id === selectedTeam)?.name}`}
+          {selectedSeason && ` > ${selectedSeason}`}
         </h2>
-      </Row>
-      <ImageGallery  
-        season = {selectedSeason}
-        team = {selectedTeam}
-      />
-    </div>
-    </div>
+        <ImageGallery season={selectedSeason} team={selectedTeam} />
+      </Col>
+    </Row>
   );
 };
 

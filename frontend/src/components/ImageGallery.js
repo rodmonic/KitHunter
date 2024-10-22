@@ -52,7 +52,7 @@ const ImageGallery = ({ season, team }) => {
           ))}
         </Row>
       ) : (
-        <p>No kits available.</p>
+        <p></p>
       )}
     </div>
   );
