@@ -3,14 +3,14 @@ import axios from 'axios';
 
 import DisplayKit from './DisplayKit';
 
-const KitCollage = ({ country, league, team, season, kitType }) => {
+const KitCollage = ({ country, league_id, team_id, season, kitType }) => {
 // Define the filenames of the images
 const [kits, setKits] = useState([]);
 
 const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
 useEffect(() => {
-    axios.get(`http://localhost:8000/api/v1/kits/?country=${country}&league=${league}&team=${team}&season=${season}&kitType=${kitType}`, {
+    axios.get(`http://localhost:8000/api/v1/kits/?country=${country}&league_id=${league_id}&team_id=${team_id}&season=${season}&kitType=${kitType}`, {
       headers: headers
     }) 
       .then(response => setKits(response.data))

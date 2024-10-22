@@ -102,7 +102,7 @@ class KitViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         queryset = Kit.objects.all()
-        
+
         # Filter by league
         league_id = request.query_params.get('league_id', None)
         if league_id:

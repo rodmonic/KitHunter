@@ -6,12 +6,21 @@ import KitCollage from './KitCollage';
 const { Option } = Select;
 
 const KitLogForm = () => {
-  const [form] = Form.useForm(); // Create form instance
+  const [form] = Form.useForm();
   const [countries, setCountries] = useState([]);
   const [leagues, setLeagues] = useState([]);
   const [teams, setTeams] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [kitTypes, setKitTypes] = useState([]);
+  
+  // State to force component re-renders
+  const [formData, setFormData] = useState({
+    country: null,
+    league: null,
+    team: null,
+    season: null,
+    kitType: null,
+  });
 
   const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
@@ -23,27 +32,37 @@ const KitLogForm = () => {
   };
 
   // Fetch lists based on current selections
-  useEffect(() => fetchData('http://localhost:8000/api/v1/leagues/countries/', setCountries), []);
+  useEffect(() => {
+    fetchData('http://localhost:8000/api/v1/leagues/countries/', setCountries);
+  }, []);
 
   const handleCountryChange = (country) => {
-    form.setFieldsValue({ league: null, team: null, season: null, type: null }); // Reset dependent fields
+    form.setFieldsValue({ league: null, team: null, season: null, kitType: null }); // Reset dependent fields
+    setFormData({ ...formData, country }); // Update state
     fetchData(`http://localhost:8000/api/v1/leagues/?country=${country}`, setLeagues);
   };
 
   const handleLeagueChange = (league) => {
-    form.setFieldsValue({ team: null, season: null, type: null }); // Reset dependent fields
+    form.setFieldsValue({ team: null, season: null, kitType: null }); // Reset dependent fields
+    setFormData({ ...formData, league }); // Update state
     fetchData(`http://localhost:8000/api/v1/teams/?league_id=${league}`, setTeams);
   };
 
   const handleTeamChange = (team) => {
-    form.setFieldsValue({ season: null, type: null }); // Reset dependent field
+    form.setFieldsValue({ season: null, kitType: null }); // Reset dependent field
+    setFormData({ ...formData, team }); // Update state
     fetchData(`http://localhost:8000/api/v1/kits/seasons/?team_id=${team}`, setSeasons);
   };
 
   const handleSeasonChange = (season) => {
     const team = form.getFieldValue('team'); // Get the selected team
-    form.setFieldsValue({ type: null }); // Reset dependent field
+    form.setFieldsValue({ kitType: null }); // Reset dependent field
+    setFormData({ ...formData, season }); // Update state
     fetchData(`http://localhost:8000/api/v1/kits/kit_types/?team_id=${team}&season=${season}`, setKitTypes);
+  };
+
+  const handleKitTypeChange = (kitType) => {
+    setFormData({ ...formData, kitType }); // Update state
   };
 
   const handleSubmit = () => {
@@ -70,64 +89,67 @@ const KitLogForm = () => {
             </Form.Item>
             <Form.Item label="League" name="league" rules={[{ required: true, message: 'Please select a league' }]}>
               <Select
-                style={{ width: '100%', marginTop: '16px' }}
-                placeholder="Select a League"
+                style={{ width: '100%' }}
+                placeholder="Select a league"
                 onChange={handleLeagueChange}
                 allowClear
               >
-                {leagues.map(league => (
+                {leagues.map((league) => (
                   <Option key={league.id} value={league.id}>{league.league_name}</Option>
                 ))}
               </Select>
             </Form.Item>
             <Form.Item label="Team" name="team" rules={[{ required: true, message: 'Please select a team' }]}>
               <Select
-                style={{ width: '100%', marginTop: '16px' }}
-                placeholder="Select a Team"
+                style={{ width: '100%' }}
+                placeholder="Select a team"
                 onChange={handleTeamChange}
                 allowClear
               >
-                {teams.map(team => (
+                {teams.map((team) => (
                   <Option key={team.id} value={team.id}>{team.name}</Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Season" name="season" rules={[{ required: true, message: 'Please select a season' }]}>
+            <Form.Item label="Season" name="sesaon" rules={[{ required: true, message: 'Please select a season' }]}>
               <Select
-                style={{ width: '100%', marginTop: '16px' }}
-                placeholder="Select a Season"
+                style={{ width: '100%' }}
+                placeholder="Select a season"
                 onChange={handleSeasonChange}
                 allowClear
               >
-                {seasons.map((season, index) => (
-                  <Option key={index} value={season}>{season}</Option>
+                {seasons.map((season) => (
+                  <Option key={season} value={season}>{season}</Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Kit Type" name="kitType" rules={[{ required: true, message: 'Please select a kit type' }]}>
+
+            <Form.Item label="Kit Type" name="kitType" rules={[{ required: true, message: 'Please select a Kit Type' }]}>
               <Select
-                style={{ width: '100%', marginTop: '16px' }}
+                style={{ width: '100%' }}
                 placeholder="Select a Kit Type"
+                onChange={handleKitTypeChange}
                 allowClear
               >
-                {kitTypes.map((kitType, index) => (  // Use kitTypes instead of seasons
-                  <Option key={index} value={kitType}>{kitType}</Option>  // Adjust according to your data structure
+                {kitTypes.map((kitType) => (
+                  <Option key={kitType} value={kitType}>{kitType}</Option>
                 ))}
               </Select>
             </Form.Item>
+            
           </Col>
           <Col span={12}>
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <h1>Image</h1>
               <KitCollage 
-                country={form.getFieldValue('country')}
-                league={form.getFieldValue('league')}
-                team={form.getFieldValue('team')}
-                season={form.getFieldValue('season')}
-                kitType={form.getFieldValue('kitType')}
+                key={`${formData.country}-${formData.league}-${formData.team}-${formData.season}-${formData.kitType}`}
+                country={formData.country}
+                league_id={formData.league}
+                team_id={formData.team}
+                season={formData.season}
+                kitType={formData.kitType}
               />
             </div>
-          </Col>
+        </Col>
         </Row>
         <Row gutter={16} style={{ marginTop: 16 }}>
           <Col span={24}>
@@ -137,6 +159,7 @@ const KitLogForm = () => {
           </Col>
         </Row>
       </Form>
+
     </div>
   );
 };
