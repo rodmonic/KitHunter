@@ -100,22 +100,36 @@ class KitViewSet(viewsets.ModelViewSet):
             return KitWriteSerializer
         return KitSerializer
 
-    def list(self, request, *args, **kwargs):
-        """
-        Overrides the default list method to support filtering by team_id and season.
-        """
-        queryset = self.queryset
-        team_id = kwargs.get('team_id', None)
-        season = kwargs.get('season', None)
+    def list(self, request):
+        queryset = Kit.objects.all()
+        
+        # Filter by league
+        league_id = request.query_params.get('league_id', None)
+        if league_id:
+            queryset = queryset.filter(team__league__id=league_id)
 
+        # Filter by team
+        team_id = request.query_params.get('team_id', None)
         if team_id:
-            queryset = queryset.filter(team_id__exact=team_id)
+            queryset = queryset.filter(team__id=team_id)
 
+        # Filter by country
+        country = request.query_params.get('country', None)
+        if country:
+            queryset = queryset.filter(team__country=country)
+
+        # Filter by season
+        season = request.query_params.get('season', None)
         if season:
-            queryset = queryset.filter(season__exact=season)
+            queryset = queryset.filter(season=season)
+
+        # Filter by kit type
+        kit_type = request.query_params.get('kit_type', None)
+        if kit_type:
+            queryset = queryset.filter(kit_type=kit_type)
 
         # Serialize the filtered queryset
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = KitSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path=r'(?P<team_id>[^/.]+)')

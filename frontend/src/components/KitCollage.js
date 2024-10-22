@@ -1,27 +1,33 @@
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// const KitCollage = ({ country, league, team, season, kitType }) => {
-// // Define the filenames of the images
-// const [kitIds, setKitsIds] = useState([]);
+import DisplayKit from './DisplayKit';
 
-// const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
+const KitCollage = ({ country, league, team, season, kitType }) => {
+// Define the filenames of the images
+const [kits, setKits] = useState([]);
 
-// useEffect(() => {
-//     axios.get(`http://localhost:8000/api/v1/kit_parts/${kit_id}`, {
-//       headers: headers
-//     }) 
-//       .then(response => setImages(response.data))
-//       .catch(error => console.error('Error fetching countries:', error));
-//   }, [kit_id]);
+const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
+
+useEffect(() => {
+    axios.get(`http://localhost:8000/api/v1/kits/?country=${country}&league=${league}&team=${team}&season=${season}&kitType=${kitType}`, {
+      headers: headers
+    }) 
+      .then(response => setKits(response.data))
+      .catch(error => console.error('Error fetching countries:', error));
+  }, []);
 
 
-// return (
-//     <div className="display-kit">
-      
-//     </div>
-// );
-// };
+return (
+    <div className="display-kit">
+      {kits.map((kit, index) =>(
+      <DisplayKit
+        kit_id={kit.id}
+      />
+      ))}
+    </div>
+);
+};
 
-// export default KitCollage;
+export default KitCollage;
   

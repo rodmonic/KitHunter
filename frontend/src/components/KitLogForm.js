@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Form, Select, Button, Row, Col } from 'antd';
-// import KitCollage from './KitCollage';
+import KitCollage from './KitCollage';
 
 const { Option } = Select;
 
@@ -12,7 +12,7 @@ const KitLogForm = () => {
   const [teams, setTeams] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [kitTypes, setKitTypes] = useState([]);
-  
+
   const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
   // Fetch data utility
@@ -45,7 +45,6 @@ const KitLogForm = () => {
     form.setFieldsValue({ type: null }); // Reset dependent field
     fetchData(`http://localhost:8000/api/v1/kits/kit_types/?team_id=${team}&season=${season}`, setKitTypes);
   };
-
 
   const handleSubmit = () => {
     const values = form.getFieldsValue();
@@ -105,8 +104,8 @@ const KitLogForm = () => {
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Type" name="type" rules={[{ required: true, message: 'Please select a kit type' }]}>
-            <Select
+            <Form.Item label="Kit Type" name="kitType" rules={[{ required: true, message: 'Please select a kit type' }]}>
+              <Select
                 style={{ width: '100%', marginTop: '16px' }}
                 placeholder="Select a Kit Type"
                 allowClear
@@ -119,13 +118,14 @@ const KitLogForm = () => {
           </Col>
           <Col span={12}>
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {/* <KitCollage 
+              <h1>Image</h1>
+              <KitCollage 
                 country={form.getFieldValue('country')}
                 league={form.getFieldValue('league')}
                 team={form.getFieldValue('team')}
                 season={form.getFieldValue('season')}
                 kitType={form.getFieldValue('kitType')}
-                 /> */}
+              />
             </div>
           </Col>
         </Row>

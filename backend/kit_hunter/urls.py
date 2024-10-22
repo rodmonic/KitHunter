@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),  # Include all the routes from the router
     path('accounts/', include("django.contrib.auth.urls")),
+    path('kits/', KitViewSet.as_view({'get': 'list'}), name='kit-list'),
 ]
