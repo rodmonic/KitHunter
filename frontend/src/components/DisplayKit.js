@@ -5,10 +5,7 @@ const DisplayKit = ({ kit_id, height }) => {
 // Define the filenames of the images
 const [images, setImages] = useState([]);
 
-const token = sessionStorage.getItem('token');
-const headers = {
-  'Authorization': `Token ${token}`
-}
+const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
 useEffect(() => {
     axios.get(`http://localhost:8000/api/v1/kit_parts/${kit_id}`, {

@@ -136,6 +136,25 @@ class KitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='kit_types')
+    def get_kit_types(self, request):
+        """
+        Custom action to get distinct kit_types for a given team and season.
+        """
+        team_id = self.request.query_params.get('team_id', None)
+        season = self.request.query_params.get('season', None)
+
+        if not team_id:
+            return Response({"detail": "Team parameter is required."}, status=400)
+
+        if not season:
+            return Response({"detail": "Season parameter is required."}, status=400)
+
+        queryset = self.queryset.filter(team_id__exact=team_id).filter(season__exact=season)
+        kit_types = queryset.values_list('kit_type', flat=True).distinct().order_by('-season')
+
+        return Response(list(kit_types))
+
     @action(detail=False, methods=['get'], url_path='seasons')
     def get_seasons(self, request):
         """
@@ -164,7 +183,7 @@ class KitPartViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitPartWriteSerializer
         return KitPartSerializer
-   
+
     @action(detail=False, methods=['get'], url_path=r'(?P<kit_id>[^/.]+)')
     def list_by_team(self, request, kit_id=None):
         """
