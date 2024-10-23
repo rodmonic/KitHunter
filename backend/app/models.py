@@ -63,10 +63,14 @@ class KitPartColor(models.Model):
 class UserKitLog(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        blank=True, null=True
     )
-    team = models.ForeignKey(Team, models.CASCADE)
-    kit = models.ForeignKey(Kit, models.CASCADE)
-    time = models.DateTimeField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    team = models.ForeignKey(Team, models.CASCADE, blank=True, null=True)
+    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
+    time = models.DateTimeField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'user_kit_log'
