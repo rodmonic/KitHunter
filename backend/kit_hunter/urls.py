@@ -2,7 +2,7 @@ from django.contrib import admin
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from knox import views as knox_views
-from app.views import LeagueViewSet, TeamViewSet, KitViewSet, KitPartViewSet, KitPartColorViewSet
+from app.views import LeagueViewSet, TeamViewSet, KitViewSet, KitPartViewSet, KitPartColorViewSet, UserKitLogViewSet
 from app.views import UserViewSet, GroupViewSet, LoginView
 
 router = DefaultRouter()
@@ -13,6 +13,7 @@ router.register(r'teams', TeamViewSet)
 router.register(r'kits', KitViewSet)
 router.register(r'kit_parts', KitPartViewSet)
 router.register(r'kit_part_colors', KitPartColorViewSet)
+router.register(r'user-kit-logs', UserKitLogViewSet)
 
 
 urlpatterns = [

@@ -1,9 +1,10 @@
-from .models import League, Team, Kit, KitPart, KitPartColor
+from .models import League, Team, Kit, KitPart, KitPartColor, UserKitLog
 from .serializers import (
     LeagueSerializer, LeagueWriteSerializer,
     TeamSerializer, TeamWriteSerializer, KitSerializer,
     KitWriteSerializer, KitPartColorSerializer, KitPartColorWriteSerializer, 
-    KitPartSerializer, KitPartWriteSerializer, GroupSerializer, UserSerializer
+    KitPartSerializer, KitPartWriteSerializer, GroupSerializer, UserSerializer,
+    UserKitLogSerializer, UserKitLogWriteSerializer
 )
 
 from rest_framework import viewsets, permissions
@@ -230,3 +231,13 @@ class KitPartColorViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitPartColorWriteSerializer
         return KitPartColorSerializer
+
+
+class UserKitLogViewSet(viewsets.ModelViewSet):
+    queryset = UserKitLog.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return UserKitLogWriteSerializer
+        return UserKitLogSerializer

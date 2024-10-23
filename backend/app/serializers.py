@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
-from .models import League, Team, Kit, KitPart, KitPartColor
+from .models import League, Team, Kit, KitPart, KitPartColor, UserKitLog
 
 
 # Users
@@ -57,6 +57,12 @@ class LeagueSerializer(serializers.ModelSerializer):
         fields = ['id', 'league_name', 'level', 'country', 'teams']
 
 
+class UserKitLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserKitLog
+        fields = ['id', 'user', 'team', 'kit', 'time', 'latitude', 'longitude']
+
+
 # Write Serialisers
 class LeagueWriteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,3 +92,9 @@ class KitPartColorWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = KitPartColor
         fields = ['color', 'kit']
+
+
+class UserKitLogWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserKitLog
+        fields = ['user', 'team', 'kit', 'time', 'latitude', 'longitude']
