@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, Select, Button, Row, Col } from 'antd';
+import { Form, Select, Button, Row, Col, message } from 'antd';
 import KitCollage from './KitCollage';
 
 const { Option } = Select;
@@ -65,10 +65,42 @@ const KitLogForm = () => {
     setFormData({ ...formData, kitType }); // Update state
   };
 
-  const handleSubmit = () => {
-    const values = form.getFieldsValue();
-    console.log('Form submitted:', values);
+  const handleSubmit = async () => {
+    const values = form.getFieldsValue(); // Get the form values
+  
+    // Prepare the data to send to your API
+    const dataToSubmit = {
+      league: values.league,
+      team: values.team,
+    };
+  
+    console.log('Form submitted:', dataToSubmit); // Debug log
+  
+    try {
+      const response = await axios.post('http://localhost:8000/api/v1/user_kit_logs/', dataToSubmit, {
+        headers,
+      });
+  
+      // Handle successful response
+      if (response.status === 201) { // Assuming 201 is the created status
+        message.success('Kit logged successfully!');
+        // Optionally, reset the form or state here if needed
+        form.resetFields();
+        setFormData({
+          country: null,
+          league: null,
+          team: null,
+          season: null,
+          kitType: null,
+        });
+      }
+    } catch (error) {
+      // Handle error response
+      console.error('Error logging kit:', error);
+      message.error('Failed to log kit: ' + (error.response?.data?.detail || error.message));
+    }
   };
+  
 
 
   // Reusable Form Select Component

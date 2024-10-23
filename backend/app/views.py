@@ -2,7 +2,7 @@ from .models import League, Team, Kit, KitPart, KitPartColor, UserKitLog
 from .serializers import (
     LeagueSerializer, LeagueWriteSerializer,
     TeamSerializer, TeamWriteSerializer, KitSerializer,
-    KitWriteSerializer, KitPartColorSerializer, KitPartColorWriteSerializer, 
+    KitWriteSerializer, KitPartColorSerializer, KitPartColorWriteSerializer,
     KitPartSerializer, KitPartWriteSerializer, GroupSerializer, UserSerializer,
     UserKitLogSerializer, UserKitLogWriteSerializer
 )
