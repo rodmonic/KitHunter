@@ -13,6 +13,7 @@ from django.contrib.auth import login
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
+from random import randint
 
 
 class LoginView(KnoxLoginView):
@@ -105,28 +106,37 @@ class KitViewSet(viewsets.ModelViewSet):
 
         # Filter by league
         league_id = request.query_params.get('league_id', None)
-        if league_id:
+        if league_id != 'null':
             queryset = queryset.filter(team__league__id=league_id)
 
         # Filter by team
         team_id = request.query_params.get('team_id', None)
-        if team_id:
+        if team_id != 'null':
             queryset = queryset.filter(team__id=team_id)
 
         # Filter by country
         country = request.query_params.get('country', None)
-        if country:
+        if country != 'null':
             queryset = queryset.filter(team__country=country)
 
         # Filter by season
         season = request.query_params.get('season', None)
-        if season:
+        if season != 'null':
             queryset = queryset.filter(season=season)
 
         # Filter by kit type
-        kit_type = request.query_params.get('kit_type', None)
-        if kit_type:
+        kit_type = request.query_params.get('kitType', None)
+        if kit_type != 'null':
             queryset = queryset.filter(kit_type=kit_type)
+
+        # get number of records to return
+        number = request.query_params.get('number', None)
+        if number != 'null':
+            int_number = int(number)
+            queryset_length = len(queryset)
+            if int_number < queryset_length:
+                start = randint(0, queryset_length - int_number)
+                queryset = queryset[start:start + int_number]
 
         # Serialize the filtered queryset
         serializer = KitSerializer(queryset, many=True)

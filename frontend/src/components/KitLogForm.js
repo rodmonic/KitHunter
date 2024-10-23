@@ -38,26 +38,26 @@ const KitLogForm = () => {
 
   const handleCountryChange = (country) => {
     form.setFieldsValue({ league: null, team: null, season: null, kitType: null }); // Reset dependent fields
-    setFormData({ ...formData, country }); // Update state
+    setFormData({ ...formData, country, league:null, team:null, season:null, kitType:null }); // Update state
     fetchData(`http://localhost:8000/api/v1/leagues/?country=${country}`, setLeagues);
   };
 
   const handleLeagueChange = (league) => {
     form.setFieldsValue({ team: null, season: null, kitType: null }); // Reset dependent fields
-    setFormData({ ...formData, league }); // Update state
+    setFormData({ ...formData, league, team:null, season:null, kitType:null }); // Update state
     fetchData(`http://localhost:8000/api/v1/teams/?league_id=${league}`, setTeams);
   };
 
   const handleTeamChange = (team) => {
     form.setFieldsValue({ season: null, kitType: null }); // Reset dependent field
-    setFormData({ ...formData, team }); // Update state
+    setFormData({ ...formData, team, season:null, kitType:null }); // Update state
     fetchData(`http://localhost:8000/api/v1/kits/seasons/?team_id=${team}`, setSeasons);
   };
 
   const handleSeasonChange = (season) => {
     const team = form.getFieldValue('team'); // Get the selected team
     form.setFieldsValue({ kitType: null }); // Reset dependent field
-    setFormData({ ...formData, season }); // Update state
+    setFormData({ ...formData, season, kitType:null }); // Update state
     fetchData(`http://localhost:8000/api/v1/kits/kit_types/?team_id=${team}&season=${season}`, setKitTypes);
   };
 
@@ -70,73 +70,75 @@ const KitLogForm = () => {
     console.log('Form submitted:', values);
   };
 
+
+  // Reusable Form Select Component
+  const FormSelect = ({ label, name, placeholder, options, onChange, rules }) => (
+    <Form.Item label={label} name={name} rules={rules}>
+      <Select
+        style={{ width: '100%' }}
+        placeholder={placeholder}
+        onChange={onChange}
+        allowClear
+      >
+        {options.map((option) => (
+          // Handling the key and value for different data structures
+          <Option
+            key={option.id || option} // Use option.id if it exists, otherwise use option
+            value={option.id || option} // Use option.id if it exists, otherwise use option
+          >
+            {option.league_name || option.name || option} {/* Display appropriate text */}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+  );
+
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Country" name="country" rules={[{ required: true, message: 'Please select a country' }]}>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select a Country"
-                onChange={handleCountryChange}
-                allowClear
-              >
-                {countries.map((country, index) => (
-                  <Option key={index} value={country}>{country}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="League" name="league" rules={[{ required: true, message: 'Please select a league' }]}>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select a league"
-                onChange={handleLeagueChange}
-                allowClear
-              >
-                {leagues.map((league) => (
-                  <Option key={league.id} value={league.id}>{league.league_name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="Team" name="team" rules={[{ required: true, message: 'Please select a team' }]}>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select a team"
-                onChange={handleTeamChange}
-                allowClear
-              >
-                {teams.map((team) => (
-                  <Option key={team.id} value={team.id}>{team.name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="Season" name="sesaon" rules={[{ required: true, message: 'Please select a season' }]}>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select a season"
-                onChange={handleSeasonChange}
-                allowClear
-              >
-                {seasons.map((season) => (
-                  <Option key={season} value={season}>{season}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item label="Kit Type" name="kitType" rules={[{ required: true, message: 'Please select a Kit Type' }]}>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select a Kit Type"
-                onChange={handleKitTypeChange}
-                allowClear
-              >
-                {kitTypes.map((kitType) => (
-                  <Option key={kitType} value={kitType}>{kitType}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-            
+            <FormSelect
+              label="Country"
+              name="country"
+              placeholder="Select a Country"
+              options={countries}
+              onChange={handleCountryChange}
+              rules={[{ required: true, message: 'Please select a country' }]}
+            />
+            <FormSelect
+              label="League"
+              name="league"
+              placeholder="Select a League"
+              options={leagues}
+              onChange={handleLeagueChange}
+              rules={[{ required: true, message: 'Please select a league' }]}
+            />
+            <FormSelect
+              label="Team"
+              name="team"
+              placeholder="Select a Team"
+              options={teams}
+              onChange={handleTeamChange}
+              rules={[{ required: true, message: 'Please select a team' }]}
+            />
+            <FormSelect
+              label="Season"
+              name="season"
+              placeholder="Select a Season"
+              options={seasons}
+              onChange={handleSeasonChange}
+              rules={[{ required: true, message: 'Please select a season' }]}
+            />
+            <FormSelect
+              label="Kit Type"
+              name="kitType"
+              placeholder="Select a Kit Type"
+              options={kitTypes}
+              onChange={handleKitTypeChange}
+              rules={[{ required: true, message: 'Please select a kit type' }]}
+            />
           </Col>
           <Col span={12}>
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -18,7 +18,6 @@ useEffect(() => {
 
 return (
     <div className="display-kit">
-        <div  style={{ height: `${height}px` }}>
         {images.map((image, index) => (
             <img
             key={index}
@@ -26,11 +25,14 @@ return (
             alt={`${index + 1}`}
             style={{ 
                 height: '100%',
-                backgroundColor: image.background_color
+                backgroundColor: image.background_color,
+                display: 'flex',
+                flexDirection: 'row', // Ensures images are side by side
+                justifyContent: 'space-around', // Adjust spacing as needed
+                alignItems: 'center',
             }} // Set the height to 100% to fill the container
             />
         ))}
-        </div>
     </div>
 );
 };
