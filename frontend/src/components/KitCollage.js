@@ -12,7 +12,7 @@ const KitCollage = ({ country, league_id, team_id, season, kitType }) => {
   const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
 
   useEffect(() => {
-      axios.get(`http://localhost:8000/api/v1/kits/?country=${country}&league_id=${league_id}&team_id=${team_id}&season=${season}&kitType=${kitType}&number=9`, {
+      axios.get(`http://localhost:8000/api/v1/kits/?country=${country}&league_id=${league_id}&team_id=${team_id}&season=${season}&kitType=${kitType}&number=15`, {
         headers: headers
       }) 
         .then(response => setKits(response.data))

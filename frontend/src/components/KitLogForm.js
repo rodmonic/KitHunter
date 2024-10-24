@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, Select, Button, Row, Col, message } from 'antd';
+import { Form, Select, Button, Row, Col, message, DatePicker} from 'antd';
 import KitCollage from './KitCollage';
 
 const { Option } = Select;
@@ -20,6 +20,7 @@ const KitLogForm = () => {
     team: null,
     season: null,
     kitType: null,
+    dateTime: null
   });
 
   const headers = { 'Authorization': `Token ${sessionStorage.getItem('token')}` };
@@ -65,6 +66,10 @@ const KitLogForm = () => {
     setFormData({ ...formData, kitType }); // Update state
   };
 
+  const handleDateChange = (dateTime) => {
+    setFormData({ ...formData, dateTime }); // Update state
+  };
+
   const handleSubmit = async () => {
     const values = form.getFieldsValue(); // Get the form values
   
@@ -72,6 +77,7 @@ const KitLogForm = () => {
     const dataToSubmit = {
       league: values.league,
       team: values.team,
+      time: values.dateTime
     };
   
     console.log('Form submitted:', dataToSubmit); // Debug log
@@ -92,6 +98,7 @@ const KitLogForm = () => {
           team: null,
           season: null,
           kitType: null,
+          dateTime: null,
         });
       }
     } catch (error) {
@@ -155,22 +162,44 @@ const KitLogForm = () => {
               onChange={handleTeamChange}
               rules={[{ required: true, message: 'Please select a team' }]}
             />
-            <FormSelect
-              label="Season"
-              name="season"
-              placeholder="Select a Season"
-              options={seasons}
-              onChange={handleSeasonChange}
-              rules={[{ required: true, message: 'Please select a season' }]}
-            />
-            <FormSelect
-              label="Kit Type"
-              name="kitType"
-              placeholder="Select a Kit Type"
-              options={kitTypes}
-              onChange={handleKitTypeChange}
-              rules={[{ required: true, message: 'Please select a kit type' }]}
-            />
+            <Row gutter={16}>
+              <Col span={12}>
+                <FormSelect
+                  label="Season"
+                  name="season"
+                  placeholder="Select a Season"
+                  options={seasons}
+                  onChange={handleSeasonChange}
+                  rules={[{ required: false, message: 'Please select a season' }]}
+                />
+              </Col>
+              <Col span={12}>
+                <FormSelect
+                  label="Kit Type"
+                  name="kitType"
+                  placeholder="Select a Kit Type"
+                  options={kitTypes}
+                  onChange={handleKitTypeChange}
+                  rules={[{ required: false, message: 'Please select a kit type' }]}
+                />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+              <Form.Item
+                  label="When Spotted"
+                  name="dateTime"
+                  rules={[{ required: true, message: 'Please select a date and time!' }]}
+                >
+                  <DatePicker
+                    showTime
+                    format="YYYY-MM-DD HH:mm:ss"
+                    onChange={handleDateChange}
+                    placeholder="Select date and time"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
           </Col>
           <Col span={12}>
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
