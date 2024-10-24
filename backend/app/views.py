@@ -241,3 +241,7 @@ class UserKitLogViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return UserKitLogWriteSerializer
         return UserKitLogSerializer
+
+    def perform_create(self, serializer):
+        # Assign the user from the request to the 'user' field
+        serializer.save(user=self.request.user)

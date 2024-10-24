@@ -97,4 +97,4 @@ class KitPartColorWriteSerializer(serializers.ModelSerializer):
 class UserKitLogWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserKitLog
-        fields = ['user', 'team', 'kit', 'time', 'latitude', 'longitude']
+        fields = ['team', 'kit', 'time', 'latitude', 'longitude']
