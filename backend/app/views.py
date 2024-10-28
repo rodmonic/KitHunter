@@ -213,6 +213,15 @@ class KitPartViewSet(viewsets.ModelViewSet):
             return KitPartWriteSerializer
         return KitPartSerializer
 
+    @action(detail=False, methods=['get'], url_path=r'(?P<kit_id>[^/.]+)')
+    def list_by_team(self, request, kit_id=None):
+        """
+        Custom action to list kit_parts filtered by Kit_id.
+        """
+        queryset = self.queryset.filter(kit_id=kit_id)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['post'], url_path='batch')
     def batch_retrieve(self, request):
         """

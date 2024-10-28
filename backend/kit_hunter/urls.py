@@ -12,7 +12,7 @@ router.register(r'groups', GroupViewSet)
 router.register(r'leagues', LeagueViewSet)
 router.register(r'teams', TeamViewSet)
 router.register(r'kits', KitViewSet)
-router.register(r'kit_parts', KitPartViewSet)
+router.register(r'kit_parts', KitPartViewSet, basename='kit_parts')
 router.register(r'kit_part_colors', KitPartColorViewSet)
 router.register(r'user_kit_logs', UserKitLogViewSet)
 
