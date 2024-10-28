@@ -101,7 +101,7 @@ class KitViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitWriteSerializer
         return KitSerializer
-
+    
     def list(self, request):
         queryset = Kit.objects.all()
 
@@ -203,20 +203,37 @@ class KitPartViewSet(viewsets.ModelViewSet):
     queryset = KitPart.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    # Use different serializers for reading and writing
+    def get_queryset(self, kit_id=None):
+        if kit_id is not None:
+            return KitPart.objects.filter(kit_id=kit_id)
+        return KitPart.objects.none()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return KitPartWriteSerializer
         return KitPartSerializer
 
-    @action(detail=False, methods=['get'], url_path=r'(?P<kit_id>[^/.]+)')
-    def list_by_team(self, request, kit_id=None):
+    @action(detail=False, methods=['post'], url_path='batch')
+    def batch_retrieve(self, request):
         """
-        Custom action to list kit_parts filtered by Kit_id.
+        Custom action to retrieve multiple KitPart instances based on a list of kit_ids provided in the request body.
         """
-        queryset = self.queryset.filter(kit_id=kit_id)
+        # Extract `kit_ids` from the request body
+        kit_ids = request.data.get('kit_ids')
+
+        # Check if `kit_ids` was provided and is a list
+        if not kit_ids or not isinstance(kit_ids, list):
+            return Response(
+                {"detail": "kit_ids must be provided as a list."},
+                status=400
+            )
+
+        # Filter the queryset by the provided kit_ids
+        queryset = KitPart.objects.filter(kit_id__in=kit_ids)
+
+        # Serialize and return the filtered queryset
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=200)
 
 
 class KitPartColorViewSet(viewsets.ModelViewSet):

@@ -26,35 +26,31 @@ class KitPartColorSerializer(serializers.ModelSerializer):
 
 
 class KitPartSerializer(serializers.ModelSerializer):
-    colors = KitPartColorSerializer(many=True, read_only=True, source='kitpartcolor_set')
 
     class Meta:
         model = KitPart
-        fields = ['id', 'kit_part', 'image_name', 'background_color', 'kit', 'colors']
+        fields = ['id', 'kit_part', 'image_name', 'background_color', 'kit']
 
 
 class KitSerializer(serializers.ModelSerializer):
-    parts = KitPartSerializer(many=True, read_only=True, source='kitpart_set')
 
     class Meta:
         model = Kit
-        fields = ['id', 'kit_type', 'season', 'sponsor', 'team', 'parts']
+        fields = ['id', 'kit_type', 'season', 'sponsor', 'team']
 
 
 class TeamSerializer(serializers.ModelSerializer):
-    kits = KitSerializer(many=True, read_only=True, source='kit_set')
 
     class Meta:
         model = Team
-        fields = ['id', 'name', 'league', 'wiki_link', 'country', 'kits']
+        fields = ['id', 'name', 'league', 'wiki_link', 'country']
 
 
 class LeagueSerializer(serializers.ModelSerializer):
-    teams = TeamSerializer(many=True, read_only=True, source='team_set')
 
     class Meta:
         model = League
-        fields = ['id', 'league_name', 'level', 'country', 'teams']
+        fields = ['id', 'league_name', 'level', 'country']
 
 
 class UserKitLogSerializer(serializers.ModelSerializer):

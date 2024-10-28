@@ -4,6 +4,7 @@ from django.urls import path, include
 from knox import views as knox_views
 from app.views import LeagueViewSet, TeamViewSet, KitViewSet, KitPartViewSet, KitPartColorViewSet, UserKitLogViewSet
 from app.views import UserViewSet, GroupViewSet, LoginView
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -24,4 +25,4 @@ urlpatterns = [
     path('api/v1/', include(router.urls)),  # Include all the routes from the router
     path('accounts/', include("django.contrib.auth.urls")),
     path('kits/', KitViewSet.as_view({'get': 'list'}), name='kit-list'),
-]
+] + debug_toolbar_urls()
