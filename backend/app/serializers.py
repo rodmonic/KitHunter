@@ -56,7 +56,7 @@ class LeagueSerializer(serializers.ModelSerializer):
 class UserKitLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserKitLog
-        fields = ['id', 'user', 'team', 'kit', 'time', 'latitude', 'longitude']
+        fields = ['id', 'team', 'time', 'season', 'kit_type', 'latitude', 'longitude']
 
 
 # Write Serialisers
@@ -93,4 +93,4 @@ class KitPartColorWriteSerializer(serializers.ModelSerializer):
 class UserKitLogWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserKitLog
-        fields = ['team', 'kit', 'time', 'latitude', 'longitude']
+        fields = ['team', 'time', 'season', 'kit_type', 'latitude', 'longitude']

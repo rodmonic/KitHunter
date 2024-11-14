@@ -67,7 +67,8 @@ class UserKitLog(models.Model):
         blank=True, null=True
     )
     team = models.ForeignKey(Team, models.CASCADE, blank=True, null=True)
-    kit = models.ForeignKey(Kit, models.CASCADE, blank=True, null=True)
+    season = models.CharField(blank=True, null=True, max_length=7)
+    kit_type = models.CharField(blank=True, null=True, max_length=15)
     time = models.DateTimeField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)

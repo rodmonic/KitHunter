@@ -77,7 +77,9 @@ const KitLogForm = () => {
     const dataToSubmit = {
       league: values.league,
       team: values.team,
-      time: values.dateTime
+      time: values.dateTime,
+      season: values.season,
+      kit_type: values.kitType
     };
   
     console.log('Form submitted:', dataToSubmit); // Debug log

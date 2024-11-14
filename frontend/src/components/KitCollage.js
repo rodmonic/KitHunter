@@ -52,7 +52,7 @@ const KitCollage = ({ country, league_id, team_id, season, kitType }) => {
                       }} // Set the height to 100% to fill the container
                       />
                   ))
-}
+                  } 
               </div>
               
             </div>
