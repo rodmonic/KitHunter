@@ -10,6 +10,7 @@ from .serializers import (
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.contrib.auth import login
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -101,7 +102,7 @@ class KitViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return KitWriteSerializer
         return KitSerializer
-    
+
     def list(self, request):
         queryset = Kit.objects.all()
 
@@ -271,3 +272,26 @@ class UserKitLogViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Assign the user from the request to the 'user' field
         serializer.save(user=self.request.user)
+
+
+class UserStatsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, user_id):
+        # Query and join relevant data
+        user_logs = UserKitLog.objects.filter(user_id=user_id).select_related('team', 'team__league')
+
+        # Create a list of dictionaries to hold data for DataFrame
+        data = []
+        for log in user_logs:
+            data.append({
+                'team': log.team.name,
+                'league': log.team.league.league_name,
+                'date_spotted': log.time,
+                'country': log.team.country,
+                'kit_type': log.kit_type,
+                'season': log.season
+                # add more fields as needed from related models
+            })
+
+        return Response(data)
