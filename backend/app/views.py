@@ -35,7 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -44,12 +44,12 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all().order_by('name')
     serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
 
 class LeagueViewSet(viewsets.ModelViewSet):
     queryset = League.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -77,7 +77,7 @@ class LeagueViewSet(viewsets.ModelViewSet):
 
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -96,7 +96,7 @@ class TeamViewSet(viewsets.ModelViewSet):
 
 class KitViewSet(viewsets.ModelViewSet):
     queryset = Kit.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -202,7 +202,7 @@ class KitPartViewSet(viewsets.ModelViewSet):
     A viewset for viewing and editing KitPart instances.
     """
     queryset = KitPart.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get_queryset(self, kit_id=None):
         if kit_id is not None:
@@ -251,7 +251,7 @@ class KitPartColorViewSet(viewsets.ModelViewSet):
     A viewset for viewing and editing KitPartColor instances.
     """
     queryset = KitPartColor.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     # Use different serializers for reading and writing
     def get_serializer_class(self):
@@ -262,7 +262,7 @@ class KitPartColorViewSet(viewsets.ModelViewSet):
 
 class UserKitLogViewSet(viewsets.ModelViewSet):
     queryset = UserKitLog.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -275,7 +275,7 @@ class UserKitLogViewSet(viewsets.ModelViewSet):
 
 
 class UserStatsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.AllowAny,)
 
     def get(self, request, user_id):
         # Query and join relevant data

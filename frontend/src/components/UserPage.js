@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import DataExplorer from './DataExplorer';
 import KitLogForm from './KitLogForm';
+import UserStatsViz from './UserStatsViz';
 
 import { SearchOutlined, UserOutlined, PlusOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
@@ -21,7 +22,7 @@ const App = () => {
       case '2':
         return <div><DataExplorer /></div>;
       case '3':
-        return <div>User Stuff</div>;
+        return <div><UserStatsViz /></div>;
       default:
         return <div>Home Content</div>;
     }
